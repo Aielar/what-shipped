@@ -1,0 +1,121 @@
+<!-- Open: the day at a glance. Every merge in the window is a stem on a 24 hour rail,
+     placed at its merge time and sized by its diff; the ones this video covers are lit.
+     Tokens: TITLE, MARK, A_TITLE, A_RAIL ("t:phrase"), STATS [{ "v": 43, "k": "changes merged", "at": "t:forty three" }],
+     COVER (next scene's ground: paper, tint or ink).
+     Globals: BRAND, LOGO, REPO, DATE, MERGES, HOURS (from prs.json). -->
+<template id="{{ID}}-template">
+  <div class="ws-scene ink" data-composition-id="{{ID}}" data-start="0" data-duration="{{SLOT}}" data-width="1920" data-height="1080">
+    <div class="ws-cam">
+      <div class="ws-frame">
+        <div class="ws-top">
+          <div class="ws-brand" data-logo="{{LOGO}}"><img alt="" /><span>{{BRAND}}</span></div>
+          <div class="ws-kick"><span class="num">000</span><span class="bar"></span><span>{{DATE}}</span></div>
+        </div>
+        <div class="hero">
+          <div class="repo ws-label">{{REPO}}</div>
+          <h1 class="ws-h1 title"><span class="t">{{TITLE|What shipped}}</span> <span class="m ws-mark">{{MARK|yesterday.}}</span></h1>
+          <div class="stats"></div>
+          <div class="rail">
+            <div class="stems"></div>
+            <div class="axis"></div>
+            <div class="hours"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ws-wipe {{COVER|paper}}"><i class="edge"></i></div>
+
+    <style>
+      [data-composition-id="{{ID}}"] .hero { margin-top: auto; display: flex; flex-direction: column; }
+      [data-composition-id="{{ID}}"] .repo { color: var(--accent); margin-bottom: 30px; letter-spacing: .1em; }
+      [data-composition-id="{{ID}}"] .title { color: var(--paper); }
+      [data-composition-id="{{ID}}"] .stats { display: flex; margin-top: 58px; }
+      [data-composition-id="{{ID}}"] .stat { display: flex; align-items: baseline; gap: 18px; padding-right: 52px; margin-right: 52px; border-right: 1px solid color-mix(in srgb, var(--paper) 22%, transparent); }
+      [data-composition-id="{{ID}}"] .stat:last-child { border-right: 0; }
+      [data-composition-id="{{ID}}"] .stat .v { font-family: var(--display); font-weight: 700; font-size: 100px; line-height: 1; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+      [data-composition-id="{{ID}}"] .stat .k { font-family: var(--mono); font-size: 20px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in srgb, var(--paper) 66%, transparent); }
+      [data-composition-id="{{ID}}"] .stat.lit .v { color: var(--accent); }
+      [data-composition-id="{{ID}}"] .rail { position: relative; height: 230px; margin-top: 40px; }
+      [data-composition-id="{{ID}}"] .stems { position: absolute; left: 0; right: 0; bottom: 36px; height: 190px; }
+      [data-composition-id="{{ID}}"] .stem { position: absolute; bottom: 0; width: 4px; margin-left: -2px; background: color-mix(in srgb, var(--paper) 34%, transparent); transform-origin: 50% 100%; }
+      [data-composition-id="{{ID}}"] .stem.int { background: color-mix(in srgb, var(--paper) 16%, transparent); }
+      [data-composition-id="{{ID}}"] .stem.hot { width: 6px; margin-left: -3px; background: var(--accent); }
+      [data-composition-id="{{ID}}"] .cap { position: absolute; width: 18px; height: 18px; margin-left: -9px; background: var(--accent); }
+      [data-composition-id="{{ID}}"] .axis { position: absolute; left: 0; right: 0; bottom: 35px; height: 1px; background: color-mix(in srgb, var(--paper) 40%, transparent); transform-origin: 0 50%; }
+      [data-composition-id="{{ID}}"] .hours { position: absolute; left: 0; right: 0; bottom: 0; height: 22px; }
+      [data-composition-id="{{ID}}"] .hours span { position: absolute; top: 0; transform: translateX(-50%); font-family: var(--mono); font-size: 16px; letter-spacing: .06em; color: color-mix(in srgb, var(--paper) 52%, transparent); }
+      [data-composition-id="{{ID}}"] .hours span:first-child { transform: none; }
+      [data-composition-id="{{ID}}"] .hours span:last-child { transform: translateX(-100%); }
+    </style>
+
+    <script>
+      (() => {
+        const SLOT = {{SLOT}};
+        const q = WS.scope("{{ID}}");
+        const root = q.one(".ws-frame");
+        WS.brand(root);
+        const tl = gsap.timeline({ paused: true });
+        const A_TITLE = {{A_TITLE|0.6}};
+        const A_RAIL = {{A_RAIL|2.4}};
+
+        // Headline words, the stats row and the rail, built once from the tokens.
+        const tw = WS.words(q.one(".title .t")), mw = WS.words(q.one(".title .m"));
+        const STATS = {{STATS|[]}};
+        STATS.forEach((s, i) => {
+          const el = document.createElement("div");
+          el.className = `stat s${i}` + (s.lit ? " lit" : "");
+          el.innerHTML = `<span class="v"></span><span class="k"></span>`;
+          el.querySelector(".v").textContent = s.v;
+          el.querySelector(".k").textContent = s.k;
+          q.one(".stats").appendChild(el);
+        });
+        const W = 1664, MERGES = {{MERGES}}, HOURS = {{HOURS}};
+        const big = Math.max(1, ...MERGES.map((m) => m.size || 1));
+        MERGES.forEach((m, i) => {
+          const st = document.createElement("div");
+          st.className = "stem" + (m.hot ? " hot" : m.internal ? " int" : "");
+          const h = Math.round(26 + 150 * Math.log1p(m.size || 1) / Math.log1p(big)); // log scale: one huge PR does not flatten the day
+          Object.assign(st.style, { left: `${m.x * W}px`, height: `${h}px` });
+          q.one(".stems").appendChild(st);
+          if (m.hot) {
+            const c = document.createElement("div");
+            c.className = `cap c${i}`;
+            Object.assign(c.style, { left: `${m.x * W}px`, bottom: `${h + 6}px` });
+            q.one(".stems").appendChild(c);
+          }
+        });
+        HOURS.forEach((h) => {
+          const s = document.createElement("span");
+          s.textContent = h.label;
+          s.style.left = `${h.x * W}px`;
+          q.one(".hours").appendChild(s);
+        });
+
+        tl.fromTo(q.sel(".ws-cam"), { scale: 1.04 }, { scale: 1, duration: SLOT, ease: "none" }, 0);
+        tl.from(q.sel(".ws-brand"), { opacity: 0, duration: 0.5, ease: "sine.out" }, 0.15);
+        tl.from(q.sel(".ws-kick"), { opacity: 0, x: 30, duration: 0.55, ease: "power2.out" }, 0.25);
+        tl.from(q.sel(".repo"), { opacity: 0, y: 14, duration: 0.5, ease: "power2.out" }, Math.max(0.3, A_TITLE - 0.5));
+        tl.from(tw, { y: 120, opacity: 0, duration: 0.75, ease: "expo.out", stagger: 0.09 }, A_TITLE - 0.25);
+        tl.from(mw, { y: 120, opacity: 0, duration: 0.8, ease: "back.out(1.3)", stagger: 0.09 }, A_TITLE + 0.3);
+
+        // Each number counts up on its spoken word.
+        STATS.forEach((s, i) => {
+          const at = typeof s.at === "number" ? s.at : A_RAIL + i * 0.5;
+          const v = q.one(`.s${i} .v`), n = { v: 0 };
+          tl.from(q.sel(`.s${i}`), { opacity: 0, y: 34, duration: 0.5, ease: "power3.out" }, at - 0.15);
+          if (typeof s.v === "number") tl.fromTo(n, { v: 0 }, { v: s.v, duration: 0.9, ease: "power2.out", onUpdate: () => { v.textContent = Math.round(n.v); } }, at - 0.15);
+        });
+
+        // The rail draws, the hours settle, then the day's merges rise in order.
+        tl.from(q.sel(".axis"), { scaleX: 0, opacity: 0, duration: 0.9, ease: "power3.inOut" }, A_RAIL - 0.6);
+        tl.from(q.all(".hours span"), { opacity: 0, y: 8, duration: 0.4, ease: "sine.out", stagger: 0.05 }, A_RAIL - 0.3);
+        tl.from(q.all(".stem"), { scaleY: 0, opacity: 0, duration: 0.5, ease: "power4.out", stagger: { each: Math.min(0.06, 1.6 / Math.max(1, MERGES.length)) } }, A_RAIL);
+        tl.from(q.all(".cap"), { scale: 0, duration: 0.45, ease: "back.out(2.2)", stagger: 0.07 }, A_RAIL + 1.75);
+
+        WS.wipe(tl, q, SLOT);
+        window.__timelines = window.__timelines || {};
+        window.__timelines["{{ID}}"] = tl;
+      })();
+    </script>
+  </div>
+</template>

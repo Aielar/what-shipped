@@ -1,0 +1,78 @@
+<!-- Close: what's live, what isn't yet, who shipped it, where to ask.
+     Tokens: NUM, TITLE (default "That's the day."), A_TITLE, A_ASK ("t:phrase"),
+     NOTES: [{ "status": "next release", "text": "Branch compare dialog" }] (may be empty),
+     NAMES (default: every human author in prs.json), ASK (default: config "outro").
+     Last scene: it fades out instead of wiping. -->
+<template id="{{ID}}-template">
+  <div class="ws-scene ink" data-composition-id="{{ID}}" data-start="0" data-duration="{{SLOT}}" data-width="1920" data-height="1080">
+    <div class="ws-cam">
+      <div class="ws-frame">
+        <div class="ws-top">
+          <div class="ws-brand" data-logo="{{LOGO}}"><img alt="" /><span>{{BRAND}}</span></div>
+          <div class="ws-kick"><span class="num">{{NUM}}</span><span class="bar"></span><span>{{KICKER|Recap}}</span></div>
+        </div>
+        <div class="body">
+          <h2 class="ws-h1 title"><span class="t">{{TITLE|That's the}}</span> <span class="m ws-mark">{{MARK|day.}}</span></h2>
+          <div class="notes"></div>
+          <div class="crew">
+            <div class="ws-label lab">Shipped by</div>
+            <div class="names"></div>
+          </div>
+          <p class="ask">{{ASK|Questions? Reply in the thread.}}</p>
+        </div>
+      </div>
+    </div>
+
+    <style>
+      [data-composition-id="{{ID}}"] .body { margin-top: auto; display: flex; flex-direction: column; }
+      [data-composition-id="{{ID}}"] .title { color: var(--paper); }
+      [data-composition-id="{{ID}}"] .notes { display: flex; flex-direction: column; gap: 16px; margin-top: 48px; }
+      [data-composition-id="{{ID}}"] .note { display: flex; align-items: center; gap: 22px; font-family: var(--display); font-size: 34px; color: color-mix(in srgb, var(--paper) 86%, transparent); }
+      [data-composition-id="{{ID}}"] .crew { display: grid; grid-template-columns: 240px 1fr; align-items: baseline; margin-top: 52px; padding-top: 30px; border-top: 1px solid color-mix(in srgb, var(--paper) 22%, transparent); }
+      [data-composition-id="{{ID}}"] .names { display: flex; flex-wrap: wrap; gap: 14px 34px; max-height: 128px; overflow: hidden; }
+      [data-composition-id="{{ID}}"] .name { font-family: var(--mono); font-size: 30px; font-weight: 500; letter-spacing: -.01em; color: var(--paper); }
+      [data-composition-id="{{ID}}"] .name.more { color: color-mix(in srgb, var(--paper) 58%, transparent); }
+      [data-composition-id="{{ID}}"] .ask { margin-top: 44px; font-family: var(--display); font-size: 44px; font-weight: 500; color: var(--paper); }
+    </style>
+
+    <script>
+      (() => {
+        const SLOT = {{SLOT}};
+        const q = WS.scope("{{ID}}");
+        WS.brand(q.one(".ws-frame"));
+        const tl = gsap.timeline({ paused: true });
+        const A_TITLE = {{A_TITLE|0.5}}, A_ASK = {{A_ASK|3}};
+        const NOTES = {{NOTES|[]}}, NAMES = {{NAMES|[]}}.length ? {{NAMES|[]}} : {{AUTHORS|[]}};
+        const tw = WS.words(q.one(".title .t")), mw = WS.words(q.one(".title .m"));
+
+        NOTES.forEach((n) => {
+          const row = document.createElement("div");
+          row.className = "note";
+          row.appendChild(WS.chip(n.status) || document.createElement("span"));
+          const t = document.createElement("span"); t.textContent = n.text; row.appendChild(t);
+          q.one(".notes").appendChild(row);
+        });
+        if (!NOTES.length) q.one(".notes").remove();
+        const SHOW = 12;
+        NAMES.slice(0, NAMES.length > SHOW ? SHOW - 1 : SHOW).forEach((n) => { const s = document.createElement("span"); s.className = "name"; s.textContent = n; q.one(".names").appendChild(s); });
+        if (NAMES.length > SHOW) { const s = document.createElement("span"); s.className = "name more"; s.textContent = `+${NAMES.length - SHOW + 1} more`; q.one(".names").appendChild(s); }
+        if (!NAMES.length) q.one(".crew").remove();
+
+        tl.fromTo(q.sel(".ws-cam"), { scale: 1 }, { scale: 1.03, duration: SLOT, ease: "none" }, 0);
+        tl.from(q.sel(".ws-brand"), { opacity: 0, duration: 0.5, ease: "sine.out" }, 0.1);
+        tl.from(q.sel(".ws-kick"), { opacity: 0, x: 30, duration: 0.5, ease: "power2.out" }, 0.2);
+        tl.from(tw, { y: 110, opacity: 0, duration: 0.75, ease: "expo.out", stagger: 0.09 }, A_TITLE - 0.25);
+        tl.from(mw, { y: 110, opacity: 0, duration: 0.8, ease: "back.out(1.3)", stagger: 0.09 }, A_TITLE + 0.15);
+        tl.from(q.all(".note"), { x: -40, opacity: 0, duration: 0.55, ease: "power3.out", stagger: 0.22 }, A_TITLE + 0.9);
+        tl.from(q.all(".crew"), { opacity: 0, duration: 0.4, ease: "sine.out" }, A_TITLE + 1.4);
+        tl.from(q.all(".name"), { y: 26, opacity: 0, duration: 0.45, ease: "back.out(1.6)", stagger: 0.06 }, A_TITLE + 1.5);
+        tl.from(q.sel(".ask"), { y: 22, opacity: 0, duration: 0.6, ease: "power2.out" }, A_ASK - 0.15);
+
+        // Final scene: fade to ink.
+        tl.to(q.sel(".ws-frame"), { opacity: 0, duration: 0.9, ease: "power1.in" }, SLOT - 0.9);
+        window.__timelines = window.__timelines || {};
+        window.__timelines["{{ID}}"] = tl;
+      })();
+    </script>
+  </div>
+</template>

@@ -1,0 +1,16 @@
+{
+  "name": "what-shipped-repo",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "plugins/what-shipped"
+  ],
+  "scripts": {
+    "test": "npm test --workspace plugins/what-shipped",
+    "scan": "node tools/scan-words.mjs",
+    "gate": "bash tools/gate.sh"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

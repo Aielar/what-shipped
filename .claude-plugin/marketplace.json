@@ -1,0 +1,25 @@
+{
+  "name": "what-shipped",
+  "owner": {
+    "name": "Aielar",
+    "url": "https://github.com/Aielar"
+  },
+  "metadata": {
+    "description": "Daily narrated videos of what your team merged, for the people who don't read PRs."
+  },
+  "plugins": [
+    {
+      "name": "what-shipped",
+      "source": "./plugins/what-shipped",
+      "description": "Turn a repo's last day of merged PRs into a narrated 90 to 120 second video that sales, ops and leadership understand.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Aielar"
+      },
+      "homepage": "https://github.com/Aielar/what-shipped",
+      "license": "MIT",
+      "category": "productivity",
+      "keywords": ["changelog", "release notes", "video", "pull requests", "hyperframes"]
+    }
+  ]
+}

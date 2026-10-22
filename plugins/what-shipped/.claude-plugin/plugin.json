@@ -1,0 +1,13 @@
+{
+  "name": "what-shipped",
+  "version": "0.1.0",
+  "description": "Turn a repo's last day of merged PRs into a narrated 90 to 120 second video that sales, ops and leadership understand.",
+  "author": {
+    "name": "Aielar",
+    "url": "https://github.com/Aielar"
+  },
+  "homepage": "https://github.com/Aielar/what-shipped",
+  "repository": "https://github.com/Aielar/what-shipped",
+  "license": "MIT",
+  "keywords": ["changelog", "release notes", "video", "pull requests", "hyperframes"]
+}

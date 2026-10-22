@@ -1,0 +1,130 @@
+<!-- A real product screen in a browser frame. The camera starts wide, then moves to each
+     focus on its spoken words, dims the rest and can bring a pointer to a button.
+     Tokens: NUM, KICKER, TITLE, MARK, URL ("app.example.com/reports"), IMG (assets/captures/<id>.png),
+     PRS ([52128]), STATUS ("live" | "next release" | "merged"), FOCI, and optional
+     ENTER (seconds, default 0.5), BG (paper, tint or ink; default paper), COVER (next ground).
+     FOCI: [{ "at": "t:phrase", "x": .1, "y": .2, "w": .3, "h": .12, "zoom": 1.8,
+              "cursor": true, "cx": .3, "cy": .25, "img": "assets/captures/after.png" }]
+     x, y, w, h, cx, cy are fractions of the screenshot. "img" swaps the screenshot at that
+     moment, and "url" swaps the address bar with it. A focus with "zoom": 1 and no box goes
+     back to the wide view. -->
+<template id="{{ID}}-template">
+  <div class="ws-scene {{BG|paper}}" data-composition-id="{{ID}}" data-start="0" data-duration="{{SLOT}}" data-width="1920" data-height="1080">
+    <div class="ws-cam">
+      <div class="ws-frame">
+        <div class="ws-top">
+          <div class="ws-brand" data-logo="{{LOGO}}"><img alt="" /><span>{{BRAND}}</span></div>
+          <div class="ws-kick"><span class="num">{{NUM}}</span><span class="bar"></span><span>{{KICKER}}</span></div>
+        </div>
+        <div class="head">
+          <h2 class="ws-h3 title"><span class="t">{{TITLE}}</span> <span class="m ws-mark">{{MARK}}</span></h2>
+          <div class="meta" data-status="{{STATUS|}}"></div>
+        </div>
+        <div class="ws-browser win">
+          <div class="bar"><i></i><i></i><i></i><span class="url"><span class="u u0">{{URL}}</span></span><span class="tag">Live product</span></div>
+          <div class="shot">
+            <div class="inner">
+              <img class="pic i0" src="{{IMG}}" alt="" />
+              <div class="box"></div>
+              <div class="ptr"><svg width="100%" height="100%" viewBox="0 0 24 24"><path d="M4 2 L11 21 L13.6 13.6 L21 11 Z" fill="#111110" stroke="#FFFFFF" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ws-wipe {{COVER|ink}}"><i class="edge"></i></div>
+
+    <style>
+      [data-composition-id="{{ID}}"] .ws-frame { padding-bottom: 60px; }
+      [data-composition-id="{{ID}}"] .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; margin-top: 26px; }
+      [data-composition-id="{{ID}}"] .title { max-width: 1180px; }
+      [data-composition-id="{{ID}}"] .meta { display: flex; align-items: center; gap: 14px; flex: none; padding-bottom: 8px; }
+      [data-composition-id="{{ID}}"] .win { margin: 24px auto 0; width: 1266px; height: 753px; flex: none; }
+      [data-composition-id="{{ID}}"] .shot { position: absolute; left: 0; top: 40px; width: 1264px; height: 711px; overflow: hidden; background: var(--paper); }
+      [data-composition-id="{{ID}}"] .inner { position: absolute; left: 0; top: 0; width: 1264px; height: 711px; transform-origin: 0 0; }
+      [data-composition-id="{{ID}}"] .url { position: relative; flex: 1; height: 20px; overflow: hidden; }
+      [data-composition-id="{{ID}}"] .u { position: absolute; left: 0; top: 0; white-space: nowrap; }
+      [data-composition-id="{{ID}}"] .pic { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
+      [data-composition-id="{{ID}}"] .box { position: absolute; left: 0; top: 0; width: 0; height: 0; border: 3px solid var(--accent); box-shadow: 0 0 0 4000px rgba(17,17,16,.3); opacity: 0; }
+      [data-composition-id="{{ID}}"] .ptr { position: absolute; left: 0; top: 0; width: 24px; height: 24px; opacity: 0; z-index: 3; }
+    </style>
+
+    <script>
+      (() => {
+        const SLOT = {{SLOT}};
+        const q = WS.scope("{{ID}}");
+        WS.brand(q.one(".ws-frame"));
+        const tl = gsap.timeline({ paused: true });
+        const FOCI = {{FOCI|[]}}, PRS = {{PRS|[]}}, ENTER = {{ENTER|0.5}};
+        const W = 1264, H = 711;
+        const tw = WS.words(q.one(".title .t")), mw = WS.words(q.one(".title .m"));
+
+        // PR numbers and status beside the headline: every claim points at its source.
+        PRS.forEach((n) => { const s = document.createElement("span"); s.className = "ws-pr"; s.textContent = `#${n}`; q.one(".meta").appendChild(s); });
+        const chip = WS.chip(q.one(".meta").dataset.status);
+        if (chip) q.one(".meta").appendChild(chip);
+        // Address bar: host in grey, path in ink; one line per page the scene shows.
+        FOCI.forEach((f, i) => { if (f.url) { const u = document.createElement("span"); u.className = `u u${i + 1}`; u.textContent = f.url; q.one(".url").appendChild(u); } });
+        q.all(".u").forEach((u) => {
+          const [host, ...rest] = u.textContent.split("/");
+          u.textContent = host;
+          if (rest.length) { const b = document.createElement("b"); b.textContent = "/" + rest.join("/"); u.append(b); }
+        });
+
+        // Extra screenshots stack above the first and fade in on their focus.
+        const inner = q.one(".inner"), box = q.one(".box");
+        FOCI.forEach((f, i) => {
+          if (!f.img) return;
+          const im = document.createElement("img");
+          im.className = `pic i${i + 1}`;
+          im.src = f.img;
+          inner.insertBefore(im, box);
+        });
+
+        tl.fromTo(q.sel(".ws-cam"), { scale: 1 }, { scale: 1.015, duration: SLOT, ease: "none" }, 0);
+        tl.from(q.sel(".ws-brand"), { opacity: 0, duration: 0.4, ease: "sine.out" }, 0.1);
+        tl.from(q.sel(".ws-kick"), { opacity: 0, x: 30, duration: 0.5, ease: "power2.out" }, 0.18);
+        tl.from(tw, { y: 60, opacity: 0, duration: 0.6, ease: "expo.out", stagger: 0.07 }, 0.25);
+        tl.from(mw, { y: 60, opacity: 0, duration: 0.65, ease: "back.out(1.4)", stagger: 0.07 }, 0.6);
+        tl.from(q.all(".meta > *"), { opacity: 0, y: 12, duration: 0.4, ease: "power2.out", stagger: 0.1 }, 0.9);
+        tl.from(q.sel(".win"), { y: 90, opacity: 0, duration: 0.8, ease: "power3.out" }, ENTER);
+        tl.from(q.sel(".bar .tag"), { opacity: 0, duration: 0.3, ease: "steps(3)" }, ENTER + 0.6);
+        FOCI.forEach((f, i) => {
+          if (f.img) tl.set(q.sel(`.i${i + 1}`), { opacity: 0 }, 0);
+          if (f.url) tl.set(q.sel(`.u${i + 1}`), { opacity: 0 }, 0);
+        });
+
+        // Camera: centre each focus at its zoom, never showing past the screenshot's edge.
+        const cam = (f) => {
+          const z = f.zoom || 1;
+          const cx = ((f.x ?? 0) + (f.w ?? 1) / 2) * W, cy = ((f.y ?? 0) + (f.h ?? 1) / 2) * H;
+          return { x: Math.min(0, Math.max(W - W * z, W / 2 - cx * z)), y: Math.min(0, Math.max(H - H * z, H / 2 - cy * z)), scale: z };
+        };
+        FOCI.forEach((f, i) => {
+          const at = typeof f.at === "number" ? f.at : ENTER + 1 + i * 2;
+          const z = f.zoom || 1;
+          if (f.img) tl.to(q.sel(`.i${i + 1}`), { opacity: 1, duration: 0.35, ease: "power1.inOut" }, at - 0.2);
+          if (f.url) { tl.set(q.all(".u"), { opacity: 0 }, at - 0.2); tl.set(q.sel(`.u${i + 1}`), { opacity: 1 }, at - 0.2); }
+          tl.to(q.sel(".inner"), { ...cam(f), duration: 1.0, ease: "power3.inOut" }, at - 0.35);
+          if (f.w && f.h) {
+            tl.to(q.sel(".box"), { x: f.x * W, y: f.y * H, width: f.w * W, height: f.h * H, borderWidth: 3 / z, opacity: 1, duration: 0.5, ease: "power2.out" }, at + 0.25);
+          } else {
+            tl.to(q.sel(".box"), { opacity: 0, duration: 0.4, ease: "power1.out" }, at - 0.2);
+          }
+          if (f.cursor && f.w) {
+            const tx = (f.cx ?? f.x + f.w * 0.6) * W, ty = (f.cy ?? f.y + f.h * 0.55) * H;
+            tl.set(q.sel(".ptr"), { opacity: 1, x: tx + 130 / z, y: ty + 96 / z, scale: 1 / z, transformOrigin: "0 0" }, at + 0.3);
+            tl.to(q.sel(".ptr"), { x: tx, y: ty, duration: 0.6, ease: "power2.out" }, at + 0.31);
+            tl.to(q.sel(".ptr"), { scale: 0.82 / z, duration: 0.09, yoyo: true, repeat: 1, ease: "power1.inOut" }, at + 0.95);
+          } else {
+            tl.to(q.sel(".ptr"), { opacity: 0, duration: 0.2, ease: "none" }, at - 0.2);
+          }
+        });
+
+        WS.wipe(tl, q, SLOT);
+        window.__timelines = window.__timelines || {};
+        window.__timelines["{{ID}}"] = tl;
+      })();
+    </script>
+  </div>
+</template>

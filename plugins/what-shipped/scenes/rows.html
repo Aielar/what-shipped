@@ -1,0 +1,82 @@
+<!-- Rows: a theme told as a short ledger, one row per spoken line, up to 5.
+     Tokens: NUM ("002"), KICKER, TITLE, MARK, A_TITLE ("t:phrase"), NOTE (optional),
+     BG (paper or tint), COVER (next scene's ground), and
+     ROWS: [{ "pr": 52128, "label": "Server SDK page", "sub": "One page for every server SDK.",
+              "status": "live" | "next release" | "merged", "at": "t:server sdk" }]
+     Keep labels under about 40 characters and subs under about 80, so each stays on one line. -->
+<template id="{{ID}}-template">
+  <div class="ws-scene {{BG|paper}}" data-composition-id="{{ID}}" data-start="0" data-duration="{{SLOT}}" data-width="1920" data-height="1080">
+    <div class="ws-cam">
+      <div class="ws-frame">
+        <div class="ws-top">
+          <div class="ws-brand" data-logo="{{LOGO}}"><img alt="" /><span>{{BRAND}}</span></div>
+          <div class="ws-kick"><span class="num">{{NUM}}</span><span class="bar"></span><span>{{KICKER}}</span></div>
+        </div>
+        <div class="block">
+          <h2 class="ws-h2 title"><span class="t">{{TITLE}}</span> <span class="m ws-mark">{{MARK}}</span></h2>
+          <div class="ws-rows rows"></div>
+          <div class="note"><span class="sq"></span><span class="nt">{{NOTE|}}</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="ws-wipe {{COVER|ink}}"><i class="edge"></i></div>
+
+    <style>
+      [data-composition-id="{{ID}}"] .block { margin: auto 0; padding-bottom: 20px; }
+      [data-composition-id="{{ID}}"] .title { max-width: 1640px; }
+      [data-composition-id="{{ID}}"] .rows { margin-top: 70px; }
+      [data-composition-id="{{ID}}"] .note { margin-top: 30px; display: flex; align-items: center; gap: 16px; font-family: var(--mono); font-size: 20px; letter-spacing: .06em; color: var(--muted); }
+      [data-composition-id="{{ID}}"] .note .sq { width: 12px; height: 12px; background: var(--accent); flex: none; }
+    </style>
+
+    <script>
+      (() => {
+        const SLOT = {{SLOT}};
+        const q = WS.scope("{{ID}}");
+        WS.brand(q.one(".ws-frame"));
+        const tl = gsap.timeline({ paused: true });
+        const A_TITLE = {{A_TITLE|0.5}};
+        const ROWS = {{ROWS}};
+        const tw = WS.words(q.one(".title .t")), mw = WS.words(q.one(".title .m"));
+
+        ROWS.forEach((r, i) => {
+          const row = document.createElement("div");
+          row.className = `ws-row r${i}`;
+          row.innerHTML = `<i class="rule"></i><span class="ws-pr"></span><span class="txt"><span class="lbl"></span><span class="sub"></span></span>`;
+          row.querySelector(".ws-pr").textContent = r.pr ? `#${r.pr}` : "";
+          row.querySelector(".lbl").textContent = r.label;
+          row.querySelector(".sub").textContent = r.sub || "";
+          const chip = WS.chip(r.status);
+          row.appendChild(chip || document.createElement("span"));
+          q.one(".rows").appendChild(row);
+        });
+        if (ROWS.length > 4) q.one(".rows").classList.add("dense");
+        if (!q.one(".note .nt").textContent.trim()) q.one(".note").remove();
+
+        tl.fromTo(q.sel(".ws-cam"), { scale: 1 }, { scale: 1.025, duration: SLOT, ease: "none" }, 0);
+        tl.from(q.sel(".ws-brand"), { opacity: 0, duration: 0.4, ease: "sine.out" }, 0.1);
+        tl.from(q.sel(".ws-kick"), { opacity: 0, x: 30, duration: 0.5, ease: "power2.out" }, 0.18);
+        tl.from(tw, { y: 90, opacity: 0, duration: 0.7, ease: "expo.out", stagger: 0.08 }, A_TITLE - 0.25);
+        tl.from(mw, { y: 90, opacity: 0, duration: 0.75, ease: "back.out(1.4)", stagger: 0.08 }, A_TITLE + 0.2);
+
+        // Each row lands on its spoken line: rule draws, number ticks in, words follow.
+        ROWS.forEach((r, i) => {
+          const t = typeof r.at === "number" ? r.at : A_TITLE + 1.2 + i * 1.6;
+          tl.from(q.sel(`.r${i} .rule`), { scaleX: 0, duration: 0.6, ease: "power3.inOut" }, t - 0.35);
+          tl.from(q.sel(`.r${i} .ws-pr`), { opacity: 0, duration: 0.25, ease: "steps(4)" }, t - 0.12);
+          tl.from(q.sel(`.r${i} .lbl`), { x: -46, opacity: 0, duration: 0.55, ease: "expo.out" }, t - 0.1);
+          tl.from(q.sel(`.r${i} .sub`), { y: 16, opacity: 0, duration: 0.5, ease: "power2.out" }, t + 0.3);
+          tl.from(q.sel(`.r${i} .ws-chip`), { scale: 1.35, opacity: 0, duration: 0.4, ease: "power4.out" }, t + 0.75);
+        });
+        if (ROWS.length && q.one(".note")) {
+          const last = ROWS[ROWS.length - 1].at;
+          tl.from(q.sel(".note"), { opacity: 0, x: -24, duration: 0.5, ease: "power2.out" }, (typeof last === "number" ? last : A_TITLE + ROWS.length * 1.6) + 1.3);
+        }
+
+        WS.wipe(tl, q, SLOT);
+        window.__timelines = window.__timelines || {};
+        window.__timelines["{{ID}}"] = tl;
+      })();
+    </script>
+  </div>
+</template>
