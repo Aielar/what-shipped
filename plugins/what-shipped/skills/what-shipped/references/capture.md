@@ -14,9 +14,16 @@
   `new`; `capture.blocked` adds your own patterns. Chrome is also stopped from going anywhere
   unvetted on its own: a script redirect, any hop of a server redirect, a frame or a popup
   aimed at a refused address is cut before the request leaves. A refused frame or popup is
-  left blank and listed in the result; a refused page fails the entry.
+  left blank and listed in the result; a refused page fails the entry. Frames from other
+  sites (a video, a map) load, since they can't change the product.
 - **Links are read, never clicked.** A `link` step reads the href, vets it, then navigates.
-  The only other actions are tab clicks, hover, scroll and waits. No buttons, no typing.
+  The only other actions are tab clicks, hover, scroll and waits. No other clicks, no typing.
+- **Writes never leave the browser.** Any request other than GET, HEAD or OPTIONS, to any
+  site, is refused and listed in the result, so a page that saves something on load can't.
+  A page that needs POST just to load its data (GraphQL, RPC) gets those URLs in
+  `capture.allowRequests`. A client-side route change (`history.pushState`, a `#/` route) to a
+  refused address fails the entry. Websocket messages are not filtered: lock to a test
+  workspace for apps that write over sockets.
 - **Workspace lock.** `capture.lock` names the element that proves the browser is in the right
   place: a workspace switcher that reads your test workspace, or, on a public site, the
   signed-out "Sign in" link that proves no account is loaded. It is checked after load, after

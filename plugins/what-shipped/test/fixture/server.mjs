@@ -55,8 +55,30 @@ export function startFixture() {
         res.writeHead(302, { location: '/app/schedule/new' }); return res.end();
       case '/app/framed':
         return send(shell('Framed', '<h1>This week</h1><iframe src="/app/schedule/new" width="300" height="200"></iframe>'));
+      case '/app/embedded': {
+        // Another origin (localhost instead of 127.0.0.1), standing in for a video embed.
+        const port = req.headers.host.split(':')[1];
+        return send(shell('Embedded', `<h1>This week</h1><iframe src="http://localhost:${port}/embed/video" width="300" height="200"></iframe>`));
+      }
+      case '/embed/video':
+        return send('<!doctype html><p>A video</p>');
       case '/app/popup':
         return send(shell('Popup', '<h1>This week</h1>', { script: `window.open('/app/schedule/new', '_blank');` }));
+      case '/app/pushy':
+        return send(shell('Pushy', '<h1>This week</h1>', { script: `setTimeout(() => history.pushState({}, '', '/app/schedule/new'), 300);` }));
+      case '/app/writer':
+        return send(shell('Writer', '<h1>This week</h1>', { script: `fetch('/app/save', { method: 'POST', body: 'x' }).catch(() => {});` }));
+      case '/app/reader':
+        return send(shell('Reader', '<h1>This week</h1>', { script: `fetch('/app/query', { method: 'POST', body: '{}' }).catch(() => {});` }));
+      case '/app/save':
+      case '/app/query':
+        res.writeHead(204); return res.end();
+      case '/app/private':
+        return send(shell('Private', '<h1>Payroll</h1>'));
+      case '/app/short':
+        res.writeHead(302, { location: '/app/shortcut' }); return res.end();
+      case '/app/shortcut':
+        return send(shell('Shortcut', '<h1>This week</h1>'));
       case '/app/moved':
         res.writeHead(302, { location: '/app/home' }); return res.end();
       case '/app/expired':

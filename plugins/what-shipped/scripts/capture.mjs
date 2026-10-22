@@ -7,9 +7,11 @@
 //   flags: --config <path>  --out <dir>
 //
 // Fail-closed by design. Every address is vetted before the browser opens it, and the
-// browser is also stopped from navigating anywhere else on its own (a redirect from
-// script, a meta refresh). Links are followed by reading their href, never clicked.
-// The only other actions are tab clicks, hover, scroll and waits: no buttons, no typing.
+// browser is also stopped from going anywhere else on its own: a redirect, a script
+// navigation, a client-side route change, a frame or a popup. Requests that could write
+// (anything but GET, HEAD and OPTIONS, to any site) are refused unless listed in
+// capture.allowRequests. Links are followed by reading their href, never clicked. The only
+// other actions are tab clicks, hover, scroll and waits: no other clicks, no typing.
 //
 // The workspace lock (config.capture.lock) names the element that proves the browser is
 // in the right account or workspace. It is checked after load, after the steps, and
@@ -58,6 +60,8 @@ const RISKY_SEGMENTS = new Set(['new', 'create', 'delete', 'remove', 'destroy', 
   'api', 'graphql', 'webhook', 'webhooks']);
 const RISKY_KEYS = new Set(['template', 'install', 'invite', 'token', 'code', 'state', 'action', 'accept', 'confirm']);
 const EXTRA = (cap.blocked || []).map((p) => new RegExp(p, 'i'));
+const ALLOW_REQUESTS = (cap.allowRequests || []).map((p) => new RegExp(p, 'i'));
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
 // Decode until stable, so "%6Eew" and "%256Eew" are read as "new", the way a server might.
 const decode = (s) => { let x = s; for (let i = 0; i < 3; i++) { const d = decodeURIComponent(x); if (d === x) break; x = d; } return x; };
@@ -65,20 +69,27 @@ function vet(raw) {
   let u;
   try { u = new URL(raw, BASE); } catch { return { ok: false, why: 'not a valid address' }; }
   if (!/^https?:$/.test(u.protocol) || u.origin !== BASE.origin) return { ok: false, why: `off-site address ${u.origin}` };
-  let path, keys;
+  // A hash route ("#/projects/new", "#!/x") is a page too, so it is read like a path.
+  const hashRoute = /^#!?\//.test(u.hash) ? new URL(u.hash.replace(/^#!?/, ''), 'http://hash') : null;
+  let path, query, keys;
   try {
-    path = decode(u.pathname);
-    keys = [...new URLSearchParams(u.search).keys()].map((k) => decode(k).toLowerCase());
+    path = decode(u.pathname) + (hashRoute ? decode(hashRoute.pathname) : '');
+    query = decode(u.search) + (hashRoute ? decode(hashRoute.search) : '');
+    keys = [u.searchParams, hashRoute?.searchParams].flatMap((sp) => (sp ? [...sp.keys()] : [])).map((k) => decode(k).toLowerCase());
   } catch { return { ok: false, why: 'address that does not decode cleanly' }; }
   // Each segment is checked by name, without matrix params (";x") or an extension (".json").
   const seg = path.toLowerCase().split('/').map((p) => p.split(';')[0].replace(/\.[a-z0-9]+$/, '')).find((p) => RISKY_SEGMENTS.has(p));
   if (seg) return { ok: false, why: `"/${seg}" pages can change data on load` };
   const key = keys.find((k) => RISKY_KEYS.has(k));
   if (key) return { ok: false, why: `"?${key}=" can change data on load` };
-  const hit = EXTRA.find((re) => re.test(path + decode(u.search)));
+  const hit = EXTRA.find((re) => re.test(path + query));
   if (hit) return { ok: false, why: `matches blocked pattern ${hit.source}` };
   return { ok: true, href: u.href };
 }
+
+// Frames from other sites (a video, a map) can't change the product, and their writes are
+// refused like any other, so they load; a frame from the product itself is vetted.
+const vetFrame = (raw) => { try { if (new URL(raw, BASE).origin !== BASE.origin) return { ok: true }; } catch {} return vet(raw); };
 
 const norm = (s) => (s || '').replace(/\s+/g, ' ').trim();
 async function lockHolds(page) {
@@ -134,7 +145,7 @@ mkdirSync(OUT, { recursive: true });
 const report = [];
 const note = (id, status, detail, extra = {}) => { report.push({ id, status, detail, ...extra }); console.log(`${status.padEnd(7)} ${id}  ${detail}`); };
 let ctx = null, ctxView = '', strayNav = null, current = null;
-const stopped = []; // frames and popups refused while capturing the current entry
+const stopped = []; // frames, popups and write requests refused during the current entry
 
 // A fresh tab per entry, so a refused navigation can't spill into the next one.
 async function pageFor(vp) {
@@ -144,15 +155,21 @@ async function pageFor(vp) {
     ctxView = vp.join('x');
     // Every document request in every tab and frame is vetted, popups included. A refused
     // top-level navigation fails the entry; a refused frame or popup is only left blank.
+    // Anything that could write is refused everywhere: the page still renders, the write
+    // never leaves the browser, and the result lists it.
     await ctx.route('**/*', (route) => {
       const req = route.request();
+      if (!SAFE_METHODS.has(req.method()) && !ALLOW_REQUESTS.some((re) => re.test(req.url()))) {
+        stopped.push(`${req.method()} ${req.url()}`);
+        return route.abort('blockedbyclient');
+      }
       if (req.isNavigationRequest()) {
-        const v = vet(req.url());
+        // A popup's first request has no frame yet, which is how it is told apart.
+        let kind = 'popup';
+        try { kind = req.frame().parentFrame() ? 'frame' : req.frame().page() === current ? 'page' : 'popup'; } catch {}
+        const v = kind === 'frame' ? vetFrame(req.url()) : vet(req.url());
         if (!v.ok) {
-          // A popup's first request has no frame yet, which is how it is told apart.
-          let top = false;
-          try { top = req.frame().page() === current && !req.frame().parentFrame(); } catch {}
-          if (top) strayNav = `${req.url()} (${v.why})`; else stopped.push(req.url());
+          if (kind === 'page') strayNav = `${req.url()} (${v.why})`; else stopped.push(`${kind} ${req.url()}`);
           return route.abort('blockedbyclient');
         }
       }
@@ -170,16 +187,17 @@ async function pageFor(vp) {
   cdp.on('Fetch.requestPaused', (e) => {
     let bad = null;
     if (e.resourceType === 'Document') {
+      const check = e.frameId === frameTree.frame.id ? vet : vetFrame;
       if (e.responseStatusCode === undefined) {
-        const v = vet(e.request.url);
+        const v = check(e.request.url);
         if (!v.ok) bad = `${e.request.url} (${v.why})`;
       } else if (e.responseStatusCode >= 300 && e.responseStatusCode < 400) {
         const loc = (e.responseHeaders || []).find((h) => h.name.toLowerCase() === 'location')?.value;
-        const v = loc ? vet(new URL(loc, e.request.url).href) : { ok: true };
+        const v = loc ? check(new URL(loc, e.request.url).href) : { ok: true };
         if (!v.ok) bad = `${loc} (${v.why})`;
       }
     }
-    if (bad && e.frameId !== frameTree.frame.id) { stopped.push(bad); bad = null; cdp.send('Fetch.failRequest', { requestId: e.requestId, errorReason: 'BlockedByClient' }).catch(() => {}); return; }
+    if (bad && e.frameId !== frameTree.frame.id) { stopped.push(`frame ${bad}`); bad = null; cdp.send('Fetch.failRequest', { requestId: e.requestId, errorReason: 'BlockedByClient' }).catch(() => {}); return; }
     if (bad) { strayNav = bad; cdp.send('Fetch.failRequest', { requestId: e.requestId, errorReason: 'BlockedByClient' }).catch(() => {}); }
     else cdp.send('Fetch.continueRequest', { requestId: e.requestId }).catch(() => {});
   });
@@ -200,14 +218,20 @@ for (const c of entries) {
     p = await pageFor(c.viewport || cap.viewport || [1280, 720]);
     strayNav = null;
     stopped.length = 0;
-    const guard = () => { if (strayNav) throw Object.assign(new Error(`page tried to open ${strayNav}`), { blocked: true }); };
-    await p.goto(target.href, { waitUntil: 'domcontentloaded', timeout: 45_000 }).catch((e) => { guard(); throw e; });
+    // Stop on a refused navigation, or when the page moved itself to a refused address
+    // without one (history.pushState, a hash route).
+    const guard = (checkUrl = true) => {
+      if (strayNav) throw Object.assign(new Error(`page tried to open ${strayNav}`), { blocked: true });
+      const v = checkUrl ? vet(p.url()) : { ok: true };
+      if (!v.ok) throw Object.assign(new Error(`page moved itself to ${p.url()} (${v.why})`), { blocked: true });
+    };
+    await p.goto(target.href, { waitUntil: 'domcontentloaded', timeout: 45_000 }).catch((e) => { guard(false); throw e; });
     await p.waitForTimeout(c.settleNav ?? 2000); // client-side redirects and app shells land here
     guard();
     const here = new URL(p.url());
     if (SIGNED_OUT.test(here.pathname)) throw new Error('signed out: run `node capture.mjs login` first');
-    const want = new URL(target.href).pathname.replace(/\/$/, '');
-    if (!here.pathname.replace(/\/$/, '').startsWith(want)) { note(c.id, 'MOVED', `asked ${want}, landed on ${here.pathname}. Not saved.`); continue; }
+    const want = new URL(target.href).pathname.replace(/\/$/, ''), got = here.pathname.replace(/\/$/, '');
+    if (got !== want && !got.startsWith(want + '/')) { note(c.id, 'MOVED', `asked ${want || '/'}, landed on ${here.pathname}. Not saved.`); continue; }
     if (!(await lockHolds(p))) { note(c.id, 'LOCKED', `"${lock.text}" not found on the page. Nothing done, nothing saved.`); continue; }
 
     if (c.waitFor) await p.getByText(c.waitFor, { exact: false }).first().waitFor({ state: 'visible', timeout: 30_000 });
@@ -255,7 +279,7 @@ for (const c of entries) {
     if (!(await lockHolds(p))) { note(c.id, 'LOCKED', `left "${lock.text}" while shooting. Not saved.`); continue; }
     const out = join(OUT, `${c.id}.png`);
     writeFileSync(out, png);
-    note(c.id, 'ok', `${out}  (${new URL(p.url()).pathname})${stopped.length ? `  left blank: ${stopped.join(', ')}` : ''}`, { file: out, stopped: [...stopped] });
+    note(c.id, 'ok', `${out}  (${new URL(p.url()).pathname})${stopped.length ? `  refused: ${stopped.join(', ')}` : ''}`, { file: out, stopped: [...stopped] });
   } catch (e) {
     note(c.id, e.blocked ? 'BLOCKED' : 'FAIL', e.message.split('\n')[0]);
   } finally {

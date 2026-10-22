@@ -9,8 +9,9 @@ seconds, about 230 to 300 words.
 
 The shape that works:
 
-- **Open**, two lines. "Here's what shipped in Larkwork since yesterday." Then the count in
-  words that match the stats on screen: "Twenty-three changes merged. Four you should know."
+- **Open**, two lines. "Here's what shipped in Larkwork since yesterday." Then the count, in
+  the order the stats appear: "Twelve changes merged, from five builders. Three are worth
+  knowing."
 - **One block per theme.** The number and a short headline ("Two. Shift swaps without the
   back and forth."), then before, then after, in a customer's words. Name the real button or
   page so people can find it. Two to four lines per theme.
@@ -24,7 +25,7 @@ Fix pronunciation in `tts` only, or once for every video in `config.voice.pronou
 | Write in `text` | Write in `tts` |
 | --- | --- |
 | SDK, MCP, KPIs | S D K, M C P, K P I's |
-| supabase.com/kb | supabase dot com slash K B |
+| app.larkwork.example/rota | app dot lark work dot example slash rota |
 | v2.14 | version two point fourteen |
 | OAuth | oh auth |
 | AI | AI, with a comma after it when a noun follows ("Ask AI, now answers") |
@@ -37,9 +38,9 @@ viewer will too: rephrase and run it again (unchanged lines are reused).
 Each entry: `id` (also the composition name), `file` (template in `scenes/`), `scene`
 (matches `lines.json`), `tokens`. Scenes run back to back; each opens 0.45 s before its first
 word. Anchors: a token value `"t:two words"` becomes the time those spoken words start inside
-the scene; `[word]` picks a later word (`"t:click [save]"`). Copy anchor words from
-`words.json`, as spoken ("twenty three", not "23"). A phrase the voice never said stops
-`assemble.mjs` and prints what was said.
+the scene; `[word]` picks a later word (`"t:click [save]"`). Copy anchor words exactly as
+`words.json` has them; Whisper usually writes numbers as digits ("t:36 changes"). A phrase
+the voice never said stops `assemble.mjs` and prints what was said.
 
 | Type | File | Use it for | Tokens |
 | --- | --- | --- | --- |
@@ -49,8 +50,8 @@ the scene; `[word]` picks a later word (`"t:click [save]"`). Copy anchor words f
 | Close | `close.html` | Always last. Not-live notes, who shipped, the outro. | NUM, TITLE, MARK, A_TITLE, A_ASK, NOTES, NAMES |
 | Custom | copy a template | Flows a screenshot can't show: before and after, a rename, a setting. | your own |
 
-Shapes: `STATS` is `[{ "v": 36, "k": "changes merged", "at": "t:thirty six" }]` (add
-`"lit": true` to color one). `ROWS` is `[{ "pr": 52128, "label": "...", "sub": "...", "status": "live", "at": "t:..." }]`.
+Shapes: `STATS` is `[{ "v": 12, "k": "changes merged", "at": "t:12 changes" }]` (add
+`"lit": true` to color one). `ROWS` is `[{ "pr": 1205, "label": "...", "sub": "...", "status": "live", "at": "t:..." }]`.
 `PRS` is a list of PR numbers; every PR named in any scene's `PRS` or `ROWS` lights up on the
 open rail, so list them all. `NOTES` is `[{ "status": "next release", "text": "..." }]`.
 `status` is `live`, `next release` or `merged`, taken from `prs.json` or from your own check.
@@ -72,7 +73,7 @@ No em dashes on screen. People and records in custom scenes are invented and gen
 
 ## Checks before the final
 
-`npx hyperframes lint` (0 errors). `npx hyperframes snapshot . --at <one time per scene>` at
+`npx hyperframes lint` (0 errors). `npx hyperframes snapshot . --describe false --at <one time per scene>` at
 each scene's busiest moment, then look at every frame for overflow, a row wrapping to three
 lines, a focus box off its target, captions covering the thing being pointed at. Then a draft
 render (`--quality draft`) and a frame at every scene boundary

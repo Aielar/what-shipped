@@ -44,10 +44,11 @@ Scripts, scenes and the design live in `${CLAUDE_PLUGIN_ROOT}`. Each step's deta
    `words.json`: anchors must quote what the voice actually said.
 5. **Capture.** `node capture.mjs captures.json` (`capture.md`). Read every PNG and place the
    focus boxes. On a public site, lock on the signed-out link so no account can be on screen.
-   `MOVED`, `LOCKED` or `BLOCKED` means that theme becomes a rows scene.
+   Anything but `ok` means that theme becomes a rows scene.
 6. **Build.** Write `scenes.json`, then `node assemble.mjs` and `npx hyperframes lint`.
-7. **Check.** `npx hyperframes snapshot . --at <the busiest second of each scene>`, look at every
-   frame, fix, repeat. Then a draft render and frames at every scene boundary.
+7. **Check.** `npx hyperframes snapshot . --describe false --at <the busiest second of each scene>`
+   (`--describe false` keeps frames of internal screens off Gemini when a Google key is set),
+   look at every frame, fix, repeat. Then a draft render and frames at every scene boundary.
 8. **Final.** `npx hyperframes render --quality standard --output renders/raw.mp4`, then
    `ffmpeg -i renders/raw.mp4 -c:v copy -af loudnorm=I=-16:TP=-1.5:LRA=11 -ar 48000 -c:a aac -b:a 192k renders/what-shipped.mp4`.
    Write `VERIFY.md` in under 30 lines: a table of each spoken claim, its PR and how it was
@@ -68,12 +69,13 @@ literal steps instead of exercising judgment. Skip `capture.mjs` and custom scen
    current folder isn't a clone). `cd` into the folder it prints.
 2. Run `node prs.mjs`. Read `prs.json`.
 3. Drop every PR with `"internal": true`. Group the rest into at most 4 themes of at most 4 PRs,
-   by the words in their titles. Write the themes and PR numbers to `themes.md` and stop for the
-   user's OK.
+   by the words in their titles. Write the themes and PR numbers to `themes.md`, add the
+   `release` block from `../config.json`, and stop for the user's OK on both.
 4. Write `lines.json` shaped like `${CLAUDE_PLUGIN_ROOT}/examples/larkwork/lines.json`: two lines
    for scene `open`, then per theme one headline line ("One. <theme>.") and one line per PR, then
    two lines for scene `close`. Use only words from PR titles and bodies. A PR whose `status` is
-   not `live` gets "coming in the next release" in its line.
+   `next release` gets "coming in the next release" in its line; never say "live" or "next
+   release" about a PR whose `status` is `merged`.
 5. Run `node voice.mjs`.
 6. Write `scenes.json` shaped like `${CLAUDE_PLUGIN_ROOT}/examples/larkwork/scenes.json`, keeping
    only `open.html`, one `rows.html` entry per theme and `close.html`. Every `"t:..."` value is
@@ -84,6 +86,6 @@ literal steps instead of exercising judgment. Skip `capture.mjs` and custom scen
 8. If lint shows 0 errors, run `npx hyperframes render --quality draft --output renders/draft.mp4`
    and hand back that path and the PRs that are not live.
 
-Stop and hand back if: `prs.mjs` fails or finds no PRs, `assemble.mjs` reports an anchor that
-wasn't spoken, or lint shows any error.
+Stop and hand back if: `scaffold.mjs`, `prs.mjs` or `voice.mjs` exits with an error, `prs.mjs`
+finds no PRs, `assemble.mjs` reports an anchor that wasn't spoken, or lint shows any error.
 </smaller_model_fallback>

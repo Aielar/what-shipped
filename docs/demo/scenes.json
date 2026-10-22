@@ -105,24 +105,24 @@
         {
           "at": "t:a new server",
           "x": 0.225,
-          "y": 0.19,
-          "w": 0.355,
-          "h": 0.12,
+          "y": 0.185,
+          "w": 0.36,
+          "h": 0.125,
           "zoom": 1.8
         },
         {
           "at": "t:public beta",
+          "img": "assets/captures/server-sdk-body.png",
           "x": 0.345,
-          "y": 0.628,
+          "y": 0.425,
           "w": 0.31,
-          "h": 0.065,
+          "h": 0.055,
           "zoom": 2.0
         },
         {
           "at": "t:claude cursor",
-          "img": "assets/captures/server-sdk-body.png",
-          "x": 0.27,
-          "y": 0.205,
+          "x": 0.265,
+          "y": 0.535,
           "w": 0.46,
           "h": 0.135,
           "zoom": 1.8

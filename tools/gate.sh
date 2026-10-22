@@ -54,7 +54,7 @@ node capture.mjs captures.json | awk '{print $1, $2}'
 node voice.mjs | grep narration
 node assemble.mjs | tail -1
 npx hyperframes lint --json | node -e 'const r=JSON.parse(require("fs").readFileSync(0,"utf8")); console.log(`lint: ${r.errorCount} errors, ${r.warningCount} warnings`); process.exit(r.errorCount ? 1 : 0)'
-npx hyperframes render --quality draft --output renders/draft.mp4 | grep -E 'rendered in'
+npx hyperframes render --quality draft --output renders/draft.mp4 2> "$WORK/render.log" | grep -E 'rendered in'
 DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 renders/draft.mp4)
 node -e "const d=+process.argv[1]; console.log('duration', d.toFixed(1)+'s'); process.exit(d>=90&&d<=120?0:1)" "$DUR"
 mkdir -p frames

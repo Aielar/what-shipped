@@ -19,10 +19,11 @@ In Claude Code:
 /plugin install what-shipped@what-shipped
 ```
 
-You also need Node 22 or newer, ffmpeg, Google Chrome, Python 3, and the GitHub CLI signed in
-(`gh auth status`). The voice (Kokoro), the word timing (Whisper) and the render (HyperFrames)
-all run on your machine. The first video installs them into a `what-shipped/` folder and sets
-up the voice model, about a minute, once.
+You also need Node 22 or newer, ffmpeg, Google Chrome, Python 3.10 or newer, and the GitHub CLI
+signed in (`gh auth status`). The voice (Kokoro), the word timing (Whisper) and the render
+(HyperFrames) all run on your machine. The first video installs HyperFrames, GSAP and
+Playwright into a `what-shipped/` folder, sets up Kokoro in `~/.cache/what-shipped`, and
+downloads the voice and Whisper models, under a gigabyte together. That happens once.
 
 ## Your first video
 
@@ -72,7 +73,7 @@ One file holds everything about your product. The plugin itself knows nothing ab
 ```json
 {
   "repo": "larkwork/larkwork",
-  "release": { "mode": "commit", "match": "^release v\\d+\\.\\d+\\.\\d+$", "author": "larkwork-release[bot]" },
+  "release": { "mode": "commit", "match": "^release v\\d+\\.\\d+\\.\\d+( \\(#\\d+\\))?$", "author": "larkwork-release[bot]" },
   "capture": {
     "baseUrl": "https://app.larkwork.example",
     "lock": { "selector": "[data-workspace-switcher]", "text": "Larkwork Demo Clinic" },
@@ -86,6 +87,8 @@ One file holds everything about your product. The plugin itself knows nothing ab
 
 Release detection has four modes: a published GitHub release that contains the merge, a
 release commit after it (release-please, semantic-release), merge means deployed, or none.
+New configs start at none, so nothing is called live until you pick the rule that matches
+how your product actually ships.
 Every key is explained in
 [`references/config.md`](plugins/what-shipped/skills/what-shipped/references/config.md), and
 [`examples/larkwork`](plugins/what-shipped/examples/larkwork) is a complete video for a
@@ -97,16 +100,20 @@ Capturing a live product is where a tool like this could do damage: some pages c
 something just by loading. `capture.mjs` is built to fail closed.
 
 - Addresses that commonly write on load (`/new`, `/delete`, `/logout`, `/oauth`, `/invite`,
-  `?template=`, and more, read after URL decoding) are refused before the browser opens them,
-  and so are redirects, script navigations, frames and popups that point at them.
-- Links are followed by reading their address, never clicked. No buttons, no typing.
+  `?template=`, and more, read after URL decoding, `#/` routes included) are refused before
+  the browser opens them, and so are redirects, script navigations, client-side route
+  changes, frames and popups that point at them.
+- Requests that could write (anything but GET, HEAD and OPTIONS) never leave the browser,
+  unless you list a URL the page needs just to load.
+- Links are followed by reading their address, never clicked. The only other actions are tab
+  clicks, hover and scroll. No typing.
 - A **workspace lock** names the element that proves the browser is in the right place,
   such as your test workspace's switcher. It is checked after load, after the steps, and
   after the shot; the PNG is saved only if all three pass. No lock, no capture.
 
 The safety tests run a local fake app that counts every request: the write-on-load page is
-never requested, the trap link's click handler never fires, nothing is saved from the wrong
-workspace. `npm test` runs them.
+never requested, a POST fired on load never arrives, the trap link's click handler never
+fires, nothing is saved from the wrong workspace. `npm test` runs them.
 
 ## How it works
 

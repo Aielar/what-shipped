@@ -4,7 +4,7 @@
   "windowHours": 24,
   "release": {
     "mode": "commit",
-    "match": "^release v\\d+\\.\\d+\\.\\d+$",
+    "match": "^release v\\d+\\.\\d+\\.\\d+( \\(#\\d+\\))?$",
     "author": "larkwork-release[bot]"
   },
   "capture": {

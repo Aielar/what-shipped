@@ -27,12 +27,13 @@ async function run(config, captures) {
 }
 const config = (capture) => ({ repo: 'larkwork/larkwork', capture: { baseUrl: app.url, profile: join(dir, 'profile'), ...capture } });
 const LOCK = { selector: '[data-workspace]', text: 'Larkwork Demo' };
+const RULES = { blocked: ['^/app/private'], allowRequests: ['/app/query$'] };
 
 before(async () => { app = await startFixture(); dir = mkdtempSync(join(tmpdir(), 'ws-capture-')); });
 after(async () => { await app.close(); rmSync(dir, { recursive: true, force: true }); });
 
 test('captures only locked, safe pages and never opens a write-on-load page', async () => {
-  const { code, out, report } = await run(config({ lock: LOCK }), [
+  const { code, out, report } = await run(config({ lock: LOCK, ...RULES }), [
     { id: 'home', url: '/app/home', waitFor: 'This week', steps: [{ tab: 'Week' }] },
     { id: 'via-link', url: '/app/home', steps: [{ link: 'Reports' }] },
     { id: 'blocked-direct', url: '/app/schedule/new' },
@@ -44,7 +45,14 @@ test('captures only locked, safe pages and never opens a write-on-load page', as
     { id: 'encoded-path', url: '/app/home', steps: [{ link: 'Encoded new' }] },
     { id: 'extension-path', url: '/app/home', steps: [{ link: 'New as JSON' }] },
     { id: 'iframe', url: '/app/framed' },
+    { id: 'offsite-frame', url: '/app/embedded' },
     { id: 'popup', url: '/app/popup' },
+    { id: 'push-state', url: '/app/pushy', settleNav: 1200 },
+    { id: 'hash-route', url: '/app/home#/schedule/new' },
+    { id: 'post-on-load', url: '/app/writer' },
+    { id: 'allowed-request', url: '/app/reader' },
+    { id: 'config-pattern', url: '/app/private' },
+    { id: 'lookalike-path', url: '/app/short' },
     { id: 'wrong-workspace', url: '/app/other' },
     { id: 'lookalike', url: '/app/lookalike' },
     { id: 'no-lock', url: '/app/nolock' },
@@ -61,13 +69,20 @@ test('captures only locked, safe pages and never opens a write-on-load page', as
   assert.deepEqual(status, {
     home: 'ok', 'via-link': 'ok',
     'blocked-direct': 'BLOCKED', 'blocked-link': 'BLOCKED', 'offsite-direct': 'BLOCKED', 'offsite-link': 'BLOCKED', 'query-link': 'BLOCKED',
-    'encoded-query': 'BLOCKED', 'encoded-path': 'BLOCKED', 'extension-path': 'BLOCKED', iframe: 'ok', popup: 'ok',
+    'encoded-query': 'BLOCKED', 'encoded-path': 'BLOCKED', 'extension-path': 'BLOCKED', iframe: 'ok', 'offsite-frame': 'ok', popup: 'ok',
+    'push-state': 'BLOCKED', 'hash-route': 'BLOCKED', 'post-on-load': 'ok', 'allowed-request': 'ok', 'config-pattern': 'BLOCKED', 'lookalike-path': 'MOVED',
     'wrong-workspace': 'LOCKED', lookalike: 'LOCKED', 'no-lock': 'LOCKED', drift: 'LOCKED',
     'script-redirect': 'BLOCKED', 'server-redirect': 'BLOCKED', 'redirect-chain': 'BLOCKED',
     moved: 'MOVED', 'signed-out': 'FAIL', 'click-step': 'FAIL', '../escape': 'FAIL',
   }, out);
   assert.equal(code, 1, 'a run with refusals exits non-zero');
-  assert.deepEqual(readdirSync(join(dir, 'out')).sort(), ['home.png', 'iframe.png', 'popup.png', 'report.json', 'via-link.png'], 'only the good captures were saved');
+  assert.deepEqual(readdirSync(join(dir, 'out')).sort(), ['allowed-request.png', 'home.png', 'iframe.png', 'offsite-frame.png', 'popup.png', 'post-on-load.png', 'report.json', 'via-link.png'], 'only the good captures were saved');
+  assert.equal(app.hits['/app/save'], undefined, 'a POST fired on load never left the browser');
+  assert.ok(report['post-on-load'].stopped.some((s) => s.startsWith('POST')), 'and the refused write is reported');
+  assert.equal(app.hits['/app/query'], 1, 'a request listed in allowRequests goes through');
+  assert.equal(app.hits['/app/private'], undefined, 'a capture.blocked pattern is never opened');
+  assert.equal(app.hits['/embed/video'], 1, 'a frame from another site loads');
+  assert.deepEqual(report['offsite-frame'].stopped, [], 'and is not reported as refused');
   assert.equal(report.iframe.stopped.length, 1, 'the write-on-load frame was left blank');
   assert.equal(report.popup.stopped.length >= 1, true, 'the popup was refused');
   for (const p of ['/app/schedule/new', '/app/schedule/%6Eew', '/app/schedule/new.json', '/app/reports?%74emplate=weekly']) {
@@ -79,6 +94,16 @@ test('captures only locked, safe pages and never opens a write-on-load page', as
   assert.equal(app.clicks(), 0, 'links are followed by address, never clicked');
   const png = readFileSync(join(dir, 'out/home.png'));
   assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [2560, 1440], '1280x720 at 2x');
+});
+
+test('a role lock matches the exact name unless prefix matching is asked for', async () => {
+  rmSync(join(dir, 'out'), { recursive: true, force: true });
+  const exact = await run(config({ lock: { role: 'button', text: 'Larkwork Demo' } }), [
+    { id: 'home', url: '/app/home' }, { id: 'lookalike', url: '/app/lookalike' }, { id: 'other', url: '/app/other' },
+  ]);
+  assert.deepEqual(Object.fromEntries(Object.entries(exact.report).map(([k, v]) => [k, v.status])), { home: 'ok', lookalike: 'LOCKED', other: 'LOCKED' }, exact.out);
+  const prefix = await run(config({ lock: { role: 'button', text: 'Larkwork Demo', match: 'prefix' } }), [{ id: 'lookalike', url: '/app/lookalike' }]);
+  assert.equal(prefix.report.lookalike.status, 'ok', prefix.out);
 });
 
 test('no lock in the config means nothing runs and nothing is requested', async () => {

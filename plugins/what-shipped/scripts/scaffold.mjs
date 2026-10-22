@@ -38,14 +38,19 @@ if (!existsSync(configFile)) {
     process.exit(2);
   }
   let releases = [];
-  try { releases = JSON.parse(sh('gh', ['release', 'list', '-R', meta.nameWithOwner, '--limit', '5', '--json', 'tagName'])); } catch {}
+  try { releases = JSON.parse(sh('gh', ['release', 'list', '-R', meta.nameWithOwner, '--limit', '5', '--json', 'tagName'])).map((r) => r.tagName); } catch {}
   const config = {
     repo: meta.nameWithOwner,
     branch: meta.defaultBranchRef?.name || 'main',
     windowHours: 24,
-    release: releases.length
-      ? { mode: 'tag', match: '.*', note: 'A PR is live once a published GitHub release contains it.' }
-      : { mode: 'none', note: 'No releases found, so nothing is called live. See references/config.md for commit and merge modes.' },
+    // Starts at "none": calling a merge live needs a rule the user confirms. A monorepo's
+    // package releases, for one, say nothing about whether the app is deployed.
+    release: {
+      mode: 'none',
+      note: releases.length
+        ? `Recent releases: ${releases.join(', ')}. If one release ships everything on the branch, switch to "tag" with a "match" for those tags.`
+        : 'No GitHub releases found. See references/config.md for the commit and merge modes.',
+    },
     capture: {
       baseUrl: meta.homepageUrl || null,
       lock: null,
@@ -61,6 +66,11 @@ if (!existsSync(configFile)) {
 }
 process.env.WHAT_SHIPPED_CONFIG = configFile;
 const cfg = loadConfig([]);
+const askedRepo = flag('--repo');
+if (askedRepo && askedRepo.toLowerCase() !== String(cfg.repo).toLowerCase()) {
+  console.error(`${configFile} is for ${cfg.repo}, not ${askedRepo}. Use a separate workspace: --home what-shipped-${askedRepo.split('/')[1]}`);
+  process.exit(2);
+}
 
 // 2. One node_modules for every video in the workspace, pinned to the plugin's versions.
 const want = JSON.parse(readFileSync(join(PLUGIN, 'package.json'), 'utf8')).dependencies;
@@ -71,7 +81,9 @@ if (JSON.stringify(have) !== JSON.stringify(want) || !existsSync(join(HOME, 'nod
   say('Installing hyperframes, gsap and playwright into the workspace (first run only)...');
   execFileSync('npm', ['install', '--no-audit', '--no-fund', '--loglevel=error'], { cwd: HOME, stdio: 'inherit' });
 }
-if (!existsSync(join(HOME, '.gitignore'))) writeFileSync(join(HOME, '.gitignore'), 'node_modules/\n*/vo-lines/\n*/renders/\n*/snapshots/\n*/frames/\n');
+// Inside the user's clone, only the config is worth committing: PR bodies, captures and
+// renders stay out of their history unless they choose otherwise.
+if (!existsSync(join(HOME, '.gitignore'))) writeFileSync(join(HOME, '.gitignore'), '*\n!.gitignore\n!config.json\n');
 
 // 3. The video project.
 const dest = join(HOME, slug);

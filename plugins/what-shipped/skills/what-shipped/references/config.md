@@ -14,14 +14,23 @@ example for a made-up product is in the plugin, at `examples/larkwork/config.jso
 | `skip` | Regexes on PR titles that mark internal work (tests, CI, chores, bumps). Defaults cover conventional commits and bots. |
 | `capture.baseUrl` | Where the product runs. Captures never leave this origin. |
 | `capture.lock` | The element that proves the right workspace: `{ "selector": "[data-workspace]", "text": "Acme Test" }` or `{ "role": "link", "text": "Sign in" }`. Required for any capture. |
+| `capture.lock.match` | `"prefix"` accepts a switcher that appends text after the name ("Acme Test  Pro"). Exact by default. |
 | `capture.blocked` | Extra regexes for paths that write on load, on top of the built-in list. |
+| `capture.allowRequests` | Regexes for URLs a page must POST to just to load (GraphQL, RPC). Every other write is refused. |
 | `capture.pages` | The product map: `{ "id", "url", "waitFor" }` per page worth showing. |
-| `capture.profile` | Chrome profile folder for the capture login. |
+| `capture.profile` | Chrome profile folder for the capture login. Default `~/.what-shipped/chrome-profile`. |
+| `capture.signedOut` | Regex for sign-in paths, so a lapsed session is reported instead of captured. Default `/(sign-?in|log-?in|auth)(/|$)`. |
+| `capture.viewport`, `scale`, `colorScheme`, `channel` | Browser size (default `[1280, 720]`), pixel ratio (2), `light` or `dark`, and the Chrome channel (`chrome`). |
 | `brand.name`, `brand.logo` | Shown in every scene's top bar. The logo path is relative to config.json; PNG or SVG, about 36px tall on screen. |
 | `brand.colors` | `ink`, `paper`, `tint`, `muted`, `rule`, `accent`. Keep `accent` readable on both `paper` and `ink` (3:1 or better); it carries every headline's marked words. |
 | `brand.fonts` | `display` (headlines and captions) and `mono` (PR numbers, times, status). Any Google Fonts family; HyperFrames embeds it at render time. |
 | `voice` | Kokoro voice id, speed, and `pronounce`: words the voice gets wrong, `{ "Larkwork": "Lark work" }`. |
 | `outro` | The close scene's last line. |
+
+Environment variables: `WHAT_SHIPPED_CONFIG` points every script at a config file,
+`WHAT_SHIPPED_BROWSER` overrides the Chrome channel, `WHAT_SHIPPED_WHISPER` picks the Whisper
+model (`small.en` by default), and `HYPERFRAMES_PYTHON` names a Python that already has
+`kokoro-onnx` and `soundfile`.
 
 ## Release modes
 

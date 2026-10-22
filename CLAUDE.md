@@ -5,7 +5,9 @@ A Claude Code plugin marketplace with one plugin. The plugin lives in `plugins/w
 is for the repo and never ships with an install.
 
 - The plugin knows nothing about any product. Anything product-specific belongs in the
-  user's `config.json`. Examples use the made-up product Larkwork, never a real company.
+  user's `config.json`. Examples inside the plugin use the made-up product Larkwork, never a
+  real company. The one exception is the README demo in `docs/`: a real public repo, run
+  as-is, every claim checked in `docs/demo/VERIFY.md`, and rebuilt by `npm run gate`.
 - `SKILL.md` and its references are prompts: normal voice, the reason behind each rule,
   one short instruction over a checklist, and a `<smaller_model_fallback>` block at the end.
 - English everywhere, no em dashes.
