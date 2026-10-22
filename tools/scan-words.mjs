@@ -14,9 +14,11 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = execFileSync('git', ['rev-parse', '--show-toplevel']).toString().trim();
+// The repo this script lives in, wherever it is run from.
+const root = execFileSync('git', ['-C', dirname(fileURLToPath(import.meta.url)), 'rev-parse', '--show-toplevel']).toString().trim();
 const fallback = join(homedir(), '.config/what-shipped/banned-words.txt');
 const raw = process.env.BANNED_WORDS
   || (process.env.BANNED_WORDS_FILE && readFileSync(process.env.BANNED_WORDS_FILE, 'utf8'))
