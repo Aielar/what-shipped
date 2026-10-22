@@ -15,7 +15,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 const LEAD = 0.45;   // a scene opens this long before its first word
-const CAP_MAX = 44;  // characters per caption card
+const CAP_MAX = 50;  // characters per caption card
 const read = (f) => JSON.parse(readFileSync(f, 'utf8'));
 const timing = read('timing.json');
 const words = read('words.json');
@@ -64,12 +64,13 @@ function anchor(scene, phrase) {
 // Globals every template can use.
 const fmt = (d) => new Date(d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
 const hot = [...new Set(scenes.flatMap((s) => (s.tokens?.PRS || []).map(Number)))];
+// Rail ticks on round hours (UTC), about eight across the window.
 const hours = [];
 if (prs) {
-  const a = new Date(prs.since), span = new Date(prs.until) - a;
-  for (let h = 0; h <= span / 3600e3 + 1e-9; h += Math.max(1, Math.round(span / 3600e3 / 8))) {
-    const d = new Date(+a + h * 3600e3);
-    hours.push({ x: +((h * 3600e3) / span).toFixed(4), label: d.toISOString().slice(11, 16) });
+  const a = +new Date(prs.since), b = +new Date(prs.until), step = Math.max(1, Math.round((b - a) / 3600e3 / 8)) * 3600e3;
+  for (let t = Math.ceil(a / step) * step; t <= b; t += step) {
+    const d = new Date(t);
+    hours.push({ x: +((t - a) / (b - a)).toFixed(4), label: d.toISOString().slice(11, 16) + (hours.length ? '' : ' UTC') });
   }
 }
 const globals = {
@@ -117,15 +118,26 @@ for (const l of timing.lines) {
   if (src.cap === false) continue; // the scene already shows this line on screen
   const chunks = [];
   for (const part of src.text.match(/.+?(?:[,.:;?!]+(?=\s|$)|$)/g) || [src.text]) {
-    let cur = '';
-    for (const w of part.trim().split(/\s+/).filter(Boolean)) {
-      if (cur && (cur + ' ' + w).length > CAP_MAX) { chunks.push(cur); cur = w; } else cur = cur ? `${cur} ${w}` : w;
+    // Split a long clause into even cards, so no card is left holding one word.
+    const ws = part.trim().split(/\s+/).filter(Boolean);
+    const len = part.trim().length;
+    for (let n = Math.ceil(len / CAP_MAX); ; n++) {
+      const target = len / n, out = [];
+      let cur = '';
+      for (const w of ws) {
+        if (cur && (cur + ' ' + w).length > target + 6) { out.push(cur); cur = w; } else cur = cur ? `${cur} ${w}` : w;
+      }
+      if (cur) out.push(cur);
+      if (out.every((c) => c.length <= CAP_MAX) || n > ws.length) { chunks.push(...out); break; }
     }
-    if (cur) chunks.push(cur);
   }
+  // Short neighbours read better as one card; a lone "Two." always joins what follows.
   for (let i = 0; i < chunks.length - 1; i++) {
-    if (chunks[i].length < 14 && (chunks[i] + ' ' + chunks[i + 1]).length <= CAP_MAX) { chunks.splice(i, 2, `${chunks[i]} ${chunks[i + 1]}`); i--; }
+    const joined = `${chunks[i]} ${chunks[i + 1]}`;
+    if (joined.length <= 38 || (chunks[i].length < 8 && joined.length <= CAP_MAX + 10)) { chunks.splice(i, 2, joined); i--; }
   }
+  const k = chunks.length - 1; // a short last card joins the one before it
+  if (k > 0 && chunks[k].length < 14 && (chunks[k - 1] + ' ' + chunks[k]).length <= CAP_MAX) chunks.splice(k - 1, 2, `${chunks[k - 1]} ${chunks[k]}`);
   const spoken = words.filter((w) => w.line === l.id);
   const counts = chunks.map((c) => c.split(/\s+/).length);
   const aligned = counts.reduce((a, b) => a + b, 0) === spoken.length;

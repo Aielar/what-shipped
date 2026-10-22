@@ -40,6 +40,11 @@ test('captures only locked, safe pages and never opens a write-on-load page', as
     { id: 'offsite-direct', url: 'https://example.com/' },
     { id: 'offsite-link', url: '/app/home', steps: [{ link: 'Docs' }] },
     { id: 'query-link', url: '/app/home', steps: [{ link: 'Team report' }] },
+    { id: 'encoded-query', url: '/app/home', steps: [{ link: 'Weekly template' }] },
+    { id: 'encoded-path', url: '/app/home', steps: [{ link: 'Encoded new' }] },
+    { id: 'extension-path', url: '/app/home', steps: [{ link: 'New as JSON' }] },
+    { id: 'iframe', url: '/app/framed' },
+    { id: 'popup', url: '/app/popup' },
     { id: 'wrong-workspace', url: '/app/other' },
     { id: 'lookalike', url: '/app/lookalike' },
     { id: 'no-lock', url: '/app/nolock' },
@@ -56,15 +61,21 @@ test('captures only locked, safe pages and never opens a write-on-load page', as
   assert.deepEqual(status, {
     home: 'ok', 'via-link': 'ok',
     'blocked-direct': 'BLOCKED', 'blocked-link': 'BLOCKED', 'offsite-direct': 'BLOCKED', 'offsite-link': 'BLOCKED', 'query-link': 'BLOCKED',
+    'encoded-query': 'BLOCKED', 'encoded-path': 'BLOCKED', 'extension-path': 'BLOCKED', iframe: 'ok', popup: 'ok',
     'wrong-workspace': 'LOCKED', lookalike: 'LOCKED', 'no-lock': 'LOCKED', drift: 'LOCKED',
     'script-redirect': 'BLOCKED', 'server-redirect': 'BLOCKED', 'redirect-chain': 'BLOCKED',
     moved: 'MOVED', 'signed-out': 'FAIL', 'click-step': 'FAIL', '../escape': 'FAIL',
   }, out);
   assert.equal(code, 1, 'a run with refusals exits non-zero');
-  assert.deepEqual(readdirSync(join(dir, 'out')).sort(), ['home.png', 'report.json', 'via-link.png'], 'only the two good captures were saved');
-  assert.equal(app.hits['/app/schedule/new'], undefined, 'the write-on-load page was never requested');
+  assert.deepEqual(readdirSync(join(dir, 'out')).sort(), ['home.png', 'iframe.png', 'popup.png', 'report.json', 'via-link.png'], 'only the good captures were saved');
+  assert.equal(report.iframe.stopped.length, 1, 'the write-on-load frame was left blank');
+  assert.equal(report.popup.stopped.length >= 1, true, 'the popup was refused');
+  for (const p of ['/app/schedule/new', '/app/schedule/%6Eew', '/app/schedule/new.json', '/app/reports?%74emplate=weekly']) {
+    assert.equal(app.hits[p], undefined, `${p} was never requested`);
+  }
   assert.equal(app.hits['/app/reports?invite=abc'], undefined, 'the invite link was never requested');
   assert.ok(app.hits['/app/reports'] >= 1, 'the Reports link was followed');
+  assert.ok(app.hits['/app/framed'] === 1 && app.hits['/app/popup'] === 1, 'pages with a bad frame or popup still load once');
   assert.equal(app.clicks(), 0, 'links are followed by address, never clicked');
   const png = readFileSync(join(dir, 'out/home.png'));
   assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [2560, 1440], '1280x720 at 2x');

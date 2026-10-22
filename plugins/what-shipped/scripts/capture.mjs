@@ -56,16 +56,26 @@ const RISKY_SEGMENTS = new Set(['new', 'create', 'delete', 'remove', 'destroy', 
   'oauth', 'oauth2', 'authorize', 'callback', 'connect', 'disconnect', 'install', 'uninstall', 'accept', 'decline',
   'invite', 'join', 'deploy', 'publish', 'checkout', 'purchase', 'unsubscribe', 'confirm', 'verify', 'reset',
   'api', 'graphql', 'webhook', 'webhooks']);
-const RISKY_QUERY = /[?&](template|install|invite|token|code|state|action|accept|confirm)=/i;
+const RISKY_KEYS = new Set(['template', 'install', 'invite', 'token', 'code', 'state', 'action', 'accept', 'confirm']);
 const EXTRA = (cap.blocked || []).map((p) => new RegExp(p, 'i'));
 
+// Decode until stable, so "%6Eew" and "%256Eew" are read as "new", the way a server might.
+const decode = (s) => { let x = s; for (let i = 0; i < 3; i++) { const d = decodeURIComponent(x); if (d === x) break; x = d; } return x; };
 function vet(raw) {
-  const u = new URL(raw, BASE);
+  let u;
+  try { u = new URL(raw, BASE); } catch { return { ok: false, why: 'not a valid address' }; }
   if (!/^https?:$/.test(u.protocol) || u.origin !== BASE.origin) return { ok: false, why: `off-site address ${u.origin}` };
-  const seg = u.pathname.toLowerCase().split('/').find((s) => RISKY_SEGMENTS.has(decodeURIComponent(s)));
+  let path, keys;
+  try {
+    path = decode(u.pathname);
+    keys = [...new URLSearchParams(u.search).keys()].map((k) => decode(k).toLowerCase());
+  } catch { return { ok: false, why: 'address that does not decode cleanly' }; }
+  // Each segment is checked by name, without matrix params (";x") or an extension (".json").
+  const seg = path.toLowerCase().split('/').map((p) => p.split(';')[0].replace(/\.[a-z0-9]+$/, '')).find((p) => RISKY_SEGMENTS.has(p));
   if (seg) return { ok: false, why: `"/${seg}" pages can change data on load` };
-  if (RISKY_QUERY.test(u.search)) return { ok: false, why: `query ${u.search} can change data on load` };
-  const hit = EXTRA.find((re) => re.test(u.pathname + u.search));
+  const key = keys.find((k) => RISKY_KEYS.has(k));
+  if (key) return { ok: false, why: `"?${key}=" can change data on load` };
+  const hit = EXTRA.find((re) => re.test(path + decode(u.search)));
   if (hit) return { ok: false, why: `matches blocked pattern ${hit.source}` };
   return { ok: true, href: u.href };
 }
@@ -123,7 +133,8 @@ mkdirSync(OUT, { recursive: true });
 
 const report = [];
 const note = (id, status, detail, extra = {}) => { report.push({ id, status, detail, ...extra }); console.log(`${status.padEnd(7)} ${id}  ${detail}`); };
-let ctx = null, ctxView = '', strayNav = null;
+let ctx = null, ctxView = '', strayNav = null, current = null;
+const stopped = []; // frames and popups refused while capturing the current entry
 
 // A fresh tab per entry, so a refused navigation can't spill into the next one.
 async function pageFor(vp) {
@@ -131,17 +142,34 @@ async function pageFor(vp) {
     if (ctx) await ctx.close();
     ctx = await launch(true, vp);
     ctxView = vp.join('x');
+    // Every document request in every tab and frame is vetted, popups included. A refused
+    // top-level navigation fails the entry; a refused frame or popup is only left blank.
+    await ctx.route('**/*', (route) => {
+      const req = route.request();
+      if (req.isNavigationRequest()) {
+        const v = vet(req.url());
+        if (!v.ok) {
+          // A popup's first request has no frame yet, which is how it is told apart.
+          let top = false;
+          try { top = req.frame().page() === current && !req.frame().parentFrame(); } catch {}
+          if (top) strayNav = `${req.url()} (${v.why})`; else stopped.push(req.url());
+          return route.abort('blockedbyclient');
+        }
+      }
+      return route.continue();
+    });
   }
-  const page = await ctx.newPage();
-  // Guard every top-level navigation, including ones the page starts by itself and
-  // every hop of a server redirect. Chrome's Fetch domain pauses the main document's
-  // request and each redirect response before the browser follows it.
+  const page = current = await ctx.newPage();
+  // A tab the page opens by itself is closed on sight; its first request was vetted above.
+  page.on('popup', (pop) => { stopped.push(`popup ${pop.url()}`); pop.close().catch(() => {}); });
+  // Redirect hops never reach a route handler, so the tab also gets Chrome's Fetch domain:
+  // it pauses every document request and every redirect response, in the page and its
+  // same-site frames, before the browser follows it.
   const cdp = await ctx.newCDPSession(page);
   const { frameTree } = await cdp.send('Page.getFrameTree');
-  const main = frameTree.frame.id;
   cdp.on('Fetch.requestPaused', (e) => {
     let bad = null;
-    if (e.resourceType === 'Document' && e.frameId === main) {
+    if (e.resourceType === 'Document') {
       if (e.responseStatusCode === undefined) {
         const v = vet(e.request.url);
         if (!v.ok) bad = `${e.request.url} (${v.why})`;
@@ -151,6 +179,7 @@ async function pageFor(vp) {
         if (!v.ok) bad = `${loc} (${v.why})`;
       }
     }
+    if (bad && e.frameId !== frameTree.frame.id) { stopped.push(bad); bad = null; cdp.send('Fetch.failRequest', { requestId: e.requestId, errorReason: 'BlockedByClient' }).catch(() => {}); return; }
     if (bad) { strayNav = bad; cdp.send('Fetch.failRequest', { requestId: e.requestId, errorReason: 'BlockedByClient' }).catch(() => {}); }
     else cdp.send('Fetch.continueRequest', { requestId: e.requestId }).catch(() => {});
   });
@@ -170,6 +199,7 @@ for (const c of entries) {
   try {
     p = await pageFor(c.viewport || cap.viewport || [1280, 720]);
     strayNav = null;
+    stopped.length = 0;
     const guard = () => { if (strayNav) throw Object.assign(new Error(`page tried to open ${strayNav}`), { blocked: true }); };
     await p.goto(target.href, { waitUntil: 'domcontentloaded', timeout: 45_000 }).catch((e) => { guard(); throw e; });
     await p.waitForTimeout(c.settleNav ?? 2000); // client-side redirects and app shells land here
@@ -225,7 +255,7 @@ for (const c of entries) {
     if (!(await lockHolds(p))) { note(c.id, 'LOCKED', `left "${lock.text}" while shooting. Not saved.`); continue; }
     const out = join(OUT, `${c.id}.png`);
     writeFileSync(out, png);
-    note(c.id, 'ok', `${out}  (${new URL(p.url()).pathname})`, { file: out });
+    note(c.id, 'ok', `${out}  (${new URL(p.url()).pathname})${stopped.length ? `  left blank: ${stopped.join(', ')}` : ''}`, { file: out, stopped: [...stopped] });
   } catch (e) {
     note(c.id, e.blocked ? 'BLOCKED' : 'FAIL', e.message.split('\n')[0]);
   } finally {

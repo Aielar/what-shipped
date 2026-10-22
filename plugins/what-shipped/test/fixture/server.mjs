@@ -25,7 +25,10 @@ export function startFixture() {
           <a href="/app/reports" id="trap">Reports</a>
           <a href="/app/schedule/new">New schedule</a>
           <a href="https://example.com/docs">Docs</a>
-          <a href="/app/reports?invite=abc">Team report</a>`,
+          <a href="/app/reports?invite=abc">Team report</a>
+          <a href="/app/reports?%74emplate=weekly">Weekly template</a>
+          <a href="/app/schedule/%6Eew">Encoded new</a>
+          <a href="/app/schedule/new.json">New as JSON</a>`,
           // A click handler that would count: the capture must read the href, not click.
           { script: `document.getElementById('trap').addEventListener('click', (e) => { e.preventDefault(); fetch('/__clicked', { method: 'POST' }); });` }));
       case '/app/reports':
@@ -50,6 +53,10 @@ export function startFixture() {
         res.writeHead(302, { location: '/app/hop' }); return res.end();
       case '/app/hop':
         res.writeHead(302, { location: '/app/schedule/new' }); return res.end();
+      case '/app/framed':
+        return send(shell('Framed', '<h1>This week</h1><iframe src="/app/schedule/new" width="300" height="200"></iframe>'));
+      case '/app/popup':
+        return send(shell('Popup', '<h1>This week</h1>', { script: `window.open('/app/schedule/new', '_blank');` }));
       case '/app/moved':
         res.writeHead(302, { location: '/app/home' }); return res.end();
       case '/app/expired':

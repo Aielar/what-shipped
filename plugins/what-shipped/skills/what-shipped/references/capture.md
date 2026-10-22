@@ -10,9 +10,11 @@
   team, `?template=` installs something. Every address is checked before it opens. Path
   segments like `new`, `create`, `delete`, `logout`, `oauth`, `callback`, `connect`, `install`,
   `accept`, `invite`, `deploy`, `checkout`, `unsubscribe`, `api` are always refused, as are
-  `?template=`, `?invite=`, `?token=` and friends; `capture.blocked` adds your own patterns.
-  Chrome is also stopped from going anywhere unvetted on its own: a script redirect or any hop
-  of a server redirect to a refused address is cut before the request leaves.
+  `?template=`, `?invite=`, `?token=` and friends, read after decoding so `%6Eew` counts as
+  `new`; `capture.blocked` adds your own patterns. Chrome is also stopped from going anywhere
+  unvetted on its own: a script redirect, any hop of a server redirect, a frame or a popup
+  aimed at a refused address is cut before the request leaves. A refused frame or popup is
+  left blank and listed in the result; a refused page fails the entry.
 - **Links are read, never clicked.** A `link` step reads the href, vets it, then navigates.
   The only other actions are tab clicks, hover, scroll and waits. No buttons, no typing.
 - **Workspace lock.** `capture.lock` names the element that proves the browser is in the right
