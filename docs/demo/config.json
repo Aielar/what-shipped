@@ -1,0 +1,48 @@
+{
+  "repo": "supabase/supabase",
+  "branch": "master",
+  "windowHours": 24,
+  "release": {
+    "mode": "none",
+    "note": "supabase.com deploys on merge, but the dashboard ships on its own schedule. Nothing is called live unless the page was checked."
+  },
+  "capture": {
+    "baseUrl": "https://supabase.com",
+    "lock": {
+      "role": "link",
+      "text": "Start your project"
+    },
+    "blocked": [],
+    "pages": [
+      {
+        "id": "kb",
+        "url": "/kb",
+        "waitFor": "Search"
+      },
+      {
+        "id": "server-sdk",
+        "url": "/features/server-sdk",
+        "waitFor": "Server SDK"
+      },
+      {
+        "id": "mcp-post",
+        "url": "/blog/give-your-supabase-app-its-own-mcp-server",
+        "waitFor": "MCP"
+      },
+      {
+        "id": "kb-callout",
+        "url": "/kb/troubleshooting/supavisor-error-password-authentication-failed-after-password-rotation"
+      }
+    ]
+  },
+  "brand": {
+    "name": "Supabase",
+    "logo": null
+  },
+  "voice": {
+    "voice": "af_heart",
+    "speed": 1,
+    "pronounce": {}
+  },
+  "outro": "Questions? Reply in the thread."
+}

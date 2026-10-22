@@ -61,4 +61,5 @@ FOCI coordinates are fractions of the screenshot (0 to 1), read off the PNG: a b
 the line talks about, `zoom` 1.5 to 2.2, `cursor: true` with `cx`/`cy` on the button when the
 line says "click". One focus per spoken step; `at` is the phrase where the camera should start
 moving, a beat before the word lands. Start with a wide view (no focus) so viewers see the
-whole page once.
+whole page once. A focus can also carry `img` and `url` to cut to another capture, with the
+address bar following; two camera moves need about two seconds between them to read.

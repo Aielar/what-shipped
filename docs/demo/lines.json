@@ -1,0 +1,106 @@
+[
+  {
+    "id": "l01",
+    "scene": "open",
+    "text": "Here's what shipped in Supabase since yesterday."
+  },
+  {
+    "id": "l02",
+    "scene": "open",
+    "text": "36 changes merged, from 15 builders. Four are worth knowing.",
+    "tts": "Thirty six changes merged, from fifteen builders. Four are worth knowing."
+  },
+  {
+    "id": "l03",
+    "scene": "kb",
+    "text": "One. The knowledge base gets a search box."
+  },
+  {
+    "id": "l04",
+    "scene": "kb",
+    "text": "Open supabase.com/kb, type a question into Search guides, and it looks through every guide and troubleshooting article.",
+    "tts": "Open supabase dot com slash K B, type a question into Search guides, and it looks through every guide and troubleshooting article."
+  },
+  {
+    "id": "l05",
+    "scene": "kb",
+    "text": "Those articles now show their notes and warnings as proper boxes."
+  },
+  {
+    "id": "l05b",
+    "scene": "kb",
+    "text": "And common questions get short answer pages of their own."
+  },
+  {
+    "id": "l06",
+    "scene": "sdk",
+    "text": "Two. Customers can bring their app into AI assistants."
+  },
+  {
+    "id": "l07",
+    "scene": "sdk",
+    "text": "A new Server SDK page, in public beta, shows how.",
+    "tts": "A new Server S D K page, in public beta, shows how."
+  },
+  {
+    "id": "l08",
+    "scene": "sdk",
+    "text": "Their users connect from Claude, Cursor, or ChatGPT in developer mode, sign in with the account they already have, and work with their own records."
+  },
+  {
+    "id": "l09",
+    "scene": "sdk",
+    "text": "A new blog post walks through building one."
+  },
+  {
+    "id": "l10",
+    "scene": "safer",
+    "text": "Three. Safer by default."
+  },
+  {
+    "id": "l11",
+    "scene": "safer",
+    "text": "The OAuth integration guide no longer tells partners to ask for a database password.",
+    "tts": "The oh auth integration guide no longer tells partners to ask for a database password."
+  },
+  {
+    "id": "l12",
+    "scene": "safer",
+    "text": "The guides for calling Edge Functions from the database now all use the secret key."
+  },
+  {
+    "id": "l13",
+    "scene": "safer",
+    "text": "And support tickets in the dashboard only take supported files, like logs, PDFs and screenshots. That one is merged, and ships with the next dashboard release.",
+    "tts": "And support tickets in the dashboard only take supported files, like logs, P D Fs and screenshots. That one is merged, and ships with the next dashboard release."
+  },
+  {
+    "id": "l14",
+    "scene": "names",
+    "text": "Four. One name: social sign-in.",
+    "tts": "Four. One name. Social sign in."
+  },
+  {
+    "id": "l15",
+    "scene": "names",
+    "text": "The docs say social sign-in and phone sign-in now, and so does the website.",
+    "tts": "The docs say social sign in, and phone sign in now. And so does the website."
+  },
+  {
+    "id": "l16",
+    "scene": "names",
+    "text": "Same features. Old social login links still work."
+  },
+  {
+    "id": "l17",
+    "scene": "close",
+    "text": "That's the day. Everything here is live on supabase.com, except the support form fix.",
+    "tts": "That's the day. Everything here is live on supabase dot com, except the support form fix."
+  },
+  {
+    "id": "l18",
+    "scene": "close",
+    "text": "Questions? Reply in the thread.",
+    "cap": false
+  }
+]

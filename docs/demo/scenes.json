@@ -1,0 +1,226 @@
+[
+  {
+    "id": "s01-open",
+    "file": "open.html",
+    "scene": "open",
+    "tokens": {
+      "TITLE": "What shipped",
+      "MARK": "yesterday.",
+      "A_TITLE": "t:what shipped",
+      "A_RAIL": "t:36 changes",
+      "STATS": [
+        {
+          "v": 36,
+          "k": "changes merged",
+          "at": "t:36 changes"
+        },
+        {
+          "v": 15,
+          "k": "builders",
+          "at": "t:15 builders"
+        },
+        {
+          "v": 4,
+          "k": "worth knowing",
+          "at": "t:four are",
+          "lit": true
+        }
+      ],
+      "COVER": "paper"
+    }
+  },
+  {
+    "id": "s02-kb",
+    "file": "capture.html",
+    "scene": "kb",
+    "tokens": {
+      "NUM": "001",
+      "KICKER": "Knowledge base",
+      "TITLE": "The knowledge base",
+      "MARK": "gets a search box.",
+      "URL": "supabase.com/kb",
+      "IMG": "assets/captures/kb.png",
+      "PRS": [
+        52089,
+        52152,
+        51795
+      ],
+      "STATUS": "live",
+      "BG": "paper",
+      "COVER": "tint",
+      "FOCI": [
+        {
+          "at": "t:search guides",
+          "x": 0.32,
+          "y": 0.585,
+          "w": 0.36,
+          "h": 0.095,
+          "zoom": 1.9,
+          "cursor": true,
+          "cx": 0.4,
+          "cy": 0.632
+        },
+        {
+          "at": "t:those articles",
+          "img": "assets/captures/kb-callout.png",
+          "url": "supabase.com/kb/troubleshooting/supavisor-error-password-authentication-failed",
+          "x": 0.06,
+          "y": 0.585,
+          "w": 0.585,
+          "h": 0.13,
+          "zoom": 1.6
+        },
+        {
+          "at": "t:common questions",
+          "img": "assets/captures/kb-faqs.png",
+          "url": "supabase.com/kb/topics/faqs",
+          "x": 0.069,
+          "y": 0.328,
+          "w": 0.862,
+          "h": 0.258,
+          "zoom": 1.1
+        }
+      ]
+    }
+  },
+  {
+    "id": "s03-sdk",
+    "file": "capture.html",
+    "scene": "sdk",
+    "tokens": {
+      "NUM": "002",
+      "KICKER": "Server SDK",
+      "TITLE": "Bring your app into",
+      "MARK": "AI assistants.",
+      "URL": "supabase.com/features/server-sdk",
+      "IMG": "assets/captures/server-sdk.png",
+      "PRS": [
+        52128,
+        52119
+      ],
+      "STATUS": "live",
+      "BG": "tint",
+      "COVER": "paper",
+      "FOCI": [
+        {
+          "at": "t:a new server",
+          "x": 0.225,
+          "y": 0.19,
+          "w": 0.355,
+          "h": 0.12,
+          "zoom": 1.8
+        },
+        {
+          "at": "t:public beta",
+          "x": 0.345,
+          "y": 0.628,
+          "w": 0.31,
+          "h": 0.065,
+          "zoom": 2.0
+        },
+        {
+          "at": "t:claude cursor",
+          "img": "assets/captures/server-sdk-body.png",
+          "x": 0.27,
+          "y": 0.205,
+          "w": 0.46,
+          "h": 0.135,
+          "zoom": 1.8
+        },
+        {
+          "at": "t:blog post",
+          "img": "assets/captures/mcp-post.png",
+          "url": "supabase.com/blog/give-your-supabase-app-its-own-mcp-server",
+          "x": 0.14,
+          "y": 0.195,
+          "w": 0.555,
+          "h": 0.085,
+          "zoom": 1.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "s04-safer",
+    "file": "rows.html",
+    "scene": "safer",
+    "tokens": {
+      "NUM": "003",
+      "KICKER": "Docs and dashboard",
+      "TITLE": "Safer",
+      "MARK": "by default.",
+      "A_TITLE": "t:safer by",
+      "BG": "paper",
+      "COVER": "tint",
+      "ROWS": [
+        {
+          "pr": 52126,
+          "label": "OAuth integration guide",
+          "sub": "No longer suggests asking for a database password.",
+          "status": "live",
+          "at": "t:the oauth"
+        },
+        {
+          "pr": 51990,
+          "label": "Edge Function guides",
+          "sub": "Database calls all use the secret key.",
+          "status": "live",
+          "at": "t:the guides"
+        },
+        {
+          "pr": 52086,
+          "label": "Support form",
+          "sub": "Takes logs, PDFs and screenshots. Blocks the rest.",
+          "status": "merged",
+          "at": "t:support tickets"
+        }
+      ]
+    }
+  },
+  {
+    "id": "s05-names",
+    "file": "rows.html",
+    "scene": "names",
+    "tokens": {
+      "NUM": "004",
+      "KICKER": "Naming",
+      "TITLE": "One name:",
+      "MARK": "social sign-in.",
+      "A_TITLE": "t:one name",
+      "BG": "tint",
+      "COVER": "ink",
+      "ROWS": [
+        {
+          "pr": 52102,
+          "label": "Docs and website",
+          "sub": "Say social sign-in and phone sign-in.",
+          "status": "live",
+          "at": "t:the docs"
+        },
+        {
+          "pr": 52111,
+          "label": "Old links",
+          "sub": "Social login addresses forward to the new pages.",
+          "status": "live",
+          "at": "t:old social"
+        }
+      ]
+    }
+  },
+  {
+    "id": "s06-close",
+    "file": "close.html",
+    "scene": "close",
+    "tokens": {
+      "NUM": "005",
+      "A_TITLE": "t:that's the",
+      "A_ASK": "t:questions",
+      "NOTES": [
+        {
+          "status": "merged",
+          "text": "Support form file types, with the next dashboard release"
+        }
+      ]
+    }
+  }
+]

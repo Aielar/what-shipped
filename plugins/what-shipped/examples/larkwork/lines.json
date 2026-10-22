@@ -1,0 +1,16 @@
+[
+  { "id": "l01", "scene": "open", "text": "Here's what shipped in Larkwork since yesterday." },
+  { "id": "l02", "scene": "open", "text": "Twelve changes merged, from five builders. Three are worth knowing." },
+  { "id": "l03", "scene": "swaps", "text": "One. Shift swaps without the back and forth." },
+  { "id": "l04", "scene": "swaps", "text": "Before, you asked your manager, waited, and they edited the rota by hand." },
+  { "id": "l05", "scene": "swaps", "text": "Now you post the shift, a colleague takes it, and your manager approves it in one tap." },
+  { "id": "l06", "scene": "hours", "text": "Two. Hours by team, on one page." },
+  { "id": "l07", "scene": "hours", "text": "Open Reports, then Hours, to see every team's week next to its budget." },
+  { "id": "l08", "scene": "fixes", "text": "Three. Fewer surprises." },
+  { "id": "l09", "scene": "fixes", "text": "Reminders now go out in each clinic's own time zone." },
+  { "id": "l10", "scene": "fixes", "text": "Exports keep the order you sorted by." },
+  { "id": "l11", "scene": "fixes", "text": "And a rota with a gap names the empty shift. That one ships with the next release." },
+  { "id": "l12", "scene": "close", "text": "That's the day. Most of this is live now, in version 4.18.",
+    "tts": "That's the day. Most of this is live now, in version four point eighteen." },
+  { "id": "l13", "scene": "close", "text": "Questions? Ask in #product-updates.", "tts": "Questions? Ask in product updates.", "cap": false }
+]

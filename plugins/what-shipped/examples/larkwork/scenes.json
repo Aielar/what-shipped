@@ -1,0 +1,63 @@
+[
+  {
+    "id": "s01-open", "file": "open.html", "scene": "open",
+    "tokens": {
+      "TITLE": "What shipped", "MARK": "yesterday.",
+      "A_TITLE": "t:what shipped", "A_RAIL": "t:twelve changes",
+      "STATS": [
+        { "v": 12, "k": "changes merged", "at": "t:twelve changes" },
+        { "v": 5, "k": "builders", "at": "t:five builders" },
+        { "v": 3, "k": "worth knowing", "at": "t:three are", "lit": true }
+      ],
+      "COVER": "paper"
+    }
+  },
+  {
+    "id": "s02-swaps", "file": "before-after.html", "scene": "swaps",
+    "tokens": {
+      "NUM": "001", "KICKER": "Shift swaps", "TITLE": "Swaps,", "MARK": "no back and forth.",
+      "A_TITLE": "t:one shift", "PRS": [1203, 1206], "STATUS": "live", "BG": "paper", "COVER": "tint",
+      "BEFORE": [
+        { "text": "Ask your manager", "at": "t:you asked" },
+        { "text": "Wait for a reply", "at": "t:waited and" },
+        { "text": "Manager edits the rota", "at": "t:they edited" }
+      ],
+      "AFTER": [
+        { "text": "Post the shift", "at": "t:you post" },
+        { "text": "A colleague takes it", "at": "t:a colleague" },
+        { "text": "Approved in one tap", "at": "t:your manager approves" }
+      ]
+    }
+  },
+  {
+    "id": "s03-hours", "file": "capture.html", "scene": "hours",
+    "tokens": {
+      "NUM": "002", "KICKER": "Reports", "TITLE": "Hours by team,", "MARK": "on one page.",
+      "URL": "app.larkwork.example/reports/hours", "IMG": "assets/captures/hours.png",
+      "PRS": [1209], "STATUS": "live", "BG": "tint", "COVER": "paper",
+      "FOCI": [
+        { "at": "t:open reports", "x": 0.02, "y": 0.18, "w": 0.16, "h": 0.12, "zoom": 1.8, "cursor": true, "cx": 0.08, "cy": 0.24 },
+        { "at": "t:next to", "x": 0.55, "y": 0.3, "w": 0.4, "h": 0.5, "zoom": 1.5 }
+      ]
+    }
+  },
+  {
+    "id": "s04-fixes", "file": "rows.html", "scene": "fixes",
+    "tokens": {
+      "NUM": "003", "KICKER": "Fixes", "TITLE": "Fewer", "MARK": "surprises.", "A_TITLE": "t:fewer surprises",
+      "BG": "paper", "COVER": "ink",
+      "ROWS": [
+        { "pr": 1205, "label": "Reminders", "sub": "Go out in each clinic's own time zone.", "status": "live", "at": "t:reminders now" },
+        { "pr": 1207, "label": "Exports", "sub": "Keep the order you sorted by.", "status": "live", "at": "t:exports keep" },
+        { "pr": 1211, "label": "Rota gaps", "sub": "Name the shift that is empty.", "status": "next release", "at": "t:and a rota" }
+      ]
+    }
+  },
+  {
+    "id": "s05-close", "file": "close.html", "scene": "close",
+    "tokens": {
+      "NUM": "004", "A_TITLE": "t:that's the", "A_ASK": "t:questions",
+      "NOTES": [{ "status": "next release", "text": "Rota gaps name the empty shift" }]
+    }
+  }
+]

@@ -1,0 +1,89 @@
+<!-- A custom scene, copied from rows.html and reshaped: one change told as the steps it
+     took before and the steps it takes now. Copy it into your video's scenes/ folder.
+     Tokens: NUM, KICKER, TITLE, MARK, A_TITLE, PRS, STATUS, BG, COVER, and
+     BEFORE / AFTER: [{ "text": "Ask your manager", "at": "t:ask your" }] (up to 4 each).
+     The people and records in a custom scene are always invented. -->
+<template id="{{ID}}-template">
+  <div class="ws-scene {{BG|paper}}" data-composition-id="{{ID}}" data-start="0" data-duration="{{SLOT}}" data-width="1920" data-height="1080">
+    <div class="ws-cam">
+      <div class="ws-frame">
+        <div class="ws-top">
+          <div class="ws-brand" data-logo="{{LOGO}}"><img alt="" /><span>{{BRAND}}</span></div>
+          <div class="ws-kick"><span class="num">{{NUM}}</span><span class="bar"></span><span>{{KICKER}}</span></div>
+        </div>
+        <div class="block">
+          <div class="head">
+            <h2 class="ws-h2 title"><span class="t">{{TITLE}}</span> <span class="m ws-mark">{{MARK}}</span></h2>
+            <div class="meta" data-status="{{STATUS|}}"></div>
+          </div>
+          <div class="cols">
+            <div class="col before"><div class="ws-label tag">Before</div><ol class="steps"></ol></div>
+            <div class="col after"><div class="ws-label tag">Now</div><ol class="steps"></ol></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ws-wipe {{COVER|ink}}"><i class="edge"></i></div>
+
+    <style>
+      [data-composition-id="{{ID}}"] .block { margin: auto 0; }
+      [data-composition-id="{{ID}}"] .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; }
+      [data-composition-id="{{ID}}"] .meta { display: flex; align-items: center; gap: 14px; padding-bottom: 12px; }
+      [data-composition-id="{{ID}}"] .cols { display: grid; grid-template-columns: 1fr 1fr; margin-top: 64px; border-top: 2px solid var(--ink); }
+      [data-composition-id="{{ID}}"] .col { padding: 34px 48px 0 0; }
+      [data-composition-id="{{ID}}"] .col.after { padding: 34px 0 0 48px; border-left: 1px solid var(--rule); }
+      [data-composition-id="{{ID}}"] .col.after .tag { color: var(--accent); }
+      [data-composition-id="{{ID}}"] .steps { list-style: none; margin: 26px 0 0; padding: 0; display: flex; flex-direction: column; gap: 22px; }
+      [data-composition-id="{{ID}}"] .step { display: flex; align-items: baseline; gap: 24px; font-family: var(--display); font-size: 46px; font-weight: 600; line-height: 1.1; letter-spacing: -.02em; }
+      [data-composition-id="{{ID}}"] .step .n { font-family: var(--mono); font-size: 20px; font-weight: 500; color: var(--muted); width: 40px; flex: none; }
+      [data-composition-id="{{ID}}"] .before .step { color: var(--muted); font-weight: 400; }
+      [data-composition-id="{{ID}}"] .after .step .n { color: var(--accent); }
+    </style>
+
+    <script>
+      (() => {
+        const SLOT = {{SLOT}};
+        const q = WS.scope("{{ID}}");
+        WS.brand(q.one(".ws-frame"));
+        const tl = gsap.timeline({ paused: true });
+        const A_TITLE = {{A_TITLE|0.5}}, BEFORE = {{BEFORE|[]}}, AFTER = {{AFTER|[]}}, PRS = {{PRS|[]}};
+        const tw = WS.words(q.one(".title .t")), mw = WS.words(q.one(".title .m"));
+
+        PRS.forEach((n) => { const s = document.createElement("span"); s.className = "ws-pr"; s.textContent = `#${n}`; q.one(".meta").appendChild(s); });
+        const chip = WS.chip(q.one(".meta").dataset.status);
+        if (chip) q.one(".meta").appendChild(chip);
+        const fill = (sel, list) => list.forEach((s, i) => {
+          const li = document.createElement("li");
+          li.className = `step s${i}`;
+          li.innerHTML = `<span class="n"></span><span class="tx"></span>`;
+          li.querySelector(".n").textContent = String(i + 1).padStart(2, "0");
+          li.querySelector(".tx").textContent = s.text;
+          q.one(`${sel} .steps`).appendChild(li);
+        });
+        fill(".before", BEFORE);
+        fill(".after", AFTER);
+
+        tl.fromTo(q.sel(".ws-cam"), { scale: 1 }, { scale: 1.025, duration: SLOT, ease: "none" }, 0);
+        tl.from(q.sel(".ws-brand"), { opacity: 0, duration: 0.4, ease: "sine.out" }, 0.1);
+        tl.from(q.sel(".ws-kick"), { opacity: 0, x: 30, duration: 0.5, ease: "power2.out" }, 0.18);
+        tl.from(tw, { y: 90, opacity: 0, duration: 0.7, ease: "expo.out", stagger: 0.08 }, A_TITLE - 0.25);
+        tl.from(mw, { y: 90, opacity: 0, duration: 0.75, ease: "back.out(1.4)", stagger: 0.08 }, A_TITLE + 0.2);
+        tl.from(q.all(".meta > *"), { opacity: 0, y: 12, duration: 0.4, ease: "power2.out", stagger: 0.1 }, A_TITLE + 0.6);
+        tl.from(q.sel(".cols"), { borderTopColor: "rgba(0,0,0,0)", duration: 0.5, ease: "sine.out" }, A_TITLE + 0.8);
+        tl.from(q.all(".tag"), { opacity: 0, y: 10, duration: 0.4, ease: "power2.out", stagger: 0.15 }, A_TITLE + 0.9);
+
+        // Each step lands on its spoken words; the old way settles in grey, the new one in ink.
+        const land = (sel, list, ease) => list.forEach((s, i) => {
+          const t = typeof s.at === "number" ? s.at : A_TITLE + 1.4 + i * 1.2;
+          tl.from(q.sel(`${sel} .s${i}`), { x: -40, opacity: 0, duration: 0.55, ease }, t - 0.15);
+        });
+        land(".before", BEFORE, "power3.out");
+        land(".after", AFTER, "expo.out");
+
+        WS.wipe(tl, q, SLOT);
+        window.__timelines = window.__timelines || {};
+        window.__timelines["{{ID}}"] = tl;
+      })();
+    </script>
+  </div>
+</template>

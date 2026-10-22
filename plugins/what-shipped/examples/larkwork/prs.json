@@ -1,0 +1,269 @@
+{
+  "repo": "larkwork/larkwork",
+  "branch": "main",
+  "since": "2026-10-21T09:00:00Z",
+  "until": "2026-10-22T09:00:00Z",
+  "release": {
+    "mode": "commit",
+    "match": "^release v\\d+\\.\\d+\\.\\d+$",
+    "author": "larkwork-release[bot]"
+  },
+  "counts": {
+    "merged": 12,
+    "external": 6,
+    "builders": 5,
+    "releases": 1,
+    "live": 10
+  },
+  "authors": [
+    "mira-k",
+    "tomasz-dev",
+    "ade-o",
+    "lin-yu",
+    "jorge-r"
+  ],
+  "merges": [
+    {
+      "n": 1201,
+      "x": 0.1333,
+      "size": 40,
+      "internal": true
+    },
+    {
+      "n": 1202,
+      "x": 0.1667,
+      "size": 12,
+      "internal": true
+    },
+    {
+      "n": 1203,
+      "x": 0.2292,
+      "size": 820,
+      "internal": false
+    },
+    {
+      "n": 1204,
+      "x": 0.2542,
+      "size": 160,
+      "internal": true
+    },
+    {
+      "n": 1205,
+      "x": 0.3083,
+      "size": 95,
+      "internal": false
+    },
+    {
+      "n": 1206,
+      "x": 0.375,
+      "size": 410,
+      "internal": false
+    },
+    {
+      "n": 1207,
+      "x": 0.4667,
+      "size": 60,
+      "internal": false
+    },
+    {
+      "n": 1208,
+      "x": 0.5625,
+      "size": 1300,
+      "internal": true
+    },
+    {
+      "n": 1209,
+      "x": 0.6583,
+      "size": 640,
+      "internal": false
+    },
+    {
+      "n": 1210,
+      "x": 0.7083,
+      "size": 4,
+      "internal": true
+    },
+    {
+      "n": 1211,
+      "x": 0.8458,
+      "size": 88,
+      "internal": false
+    },
+    {
+      "n": 1212,
+      "x": 0.9417,
+      "size": 30,
+      "internal": true
+    }
+  ],
+  "prs": [
+    {
+      "number": 1201,
+      "title": "ci: cache the browser download",
+      "author": "ade-o",
+      "mergedAt": "2026-10-21T12:12:00Z",
+      "url": "https://github.com/larkwork/larkwork/pull/1201",
+      "labels": [],
+      "size": 40,
+      "files": 1,
+      "internal": true,
+      "status": "live",
+      "version": "release v4.18.0",
+      "body": ""
+    },
+    {
+      "number": 1202,
+      "title": "chore(deps): bump date-fns",
+      "author": "renovate[bot]",
+      "mergedAt": "2026-10-21T13:00:00Z",
+      "url": "https://github.com/larkwork/larkwork/pull/1202",
+      "labels": [],
+      "size": 12,
+      "files": 1,
+      "internal": true,
+      "status": "live",
+      "version": "release v4.18.0",
+      "body": ""
+    },
+    {
+      "number": 1203,
+      "title": "feat(swaps): post a shift for colleagues to take",
+      "author": "mira-k",
+      "mergedAt": "2026-10-21T14:30:00Z",
+      "url": "https://github.com/larkwork/larkwork/pull/1203",
+      "labels": [],
+      "size": 820,
+      "files": 13,
+      "internal": false,
+      "status": "live",
+      "version": "release v4.18.0",
+      "body": ""
+    },
+    {
+      "number": 1204,
+      "title": "test(rota): cover overnight shifts",
+      "author": "lin-yu",
+      "mergedAt": "2026-10-21T15:06:00Z",
+      "url": "https://github.com/larkwork/larkwork/pull/1204",
+      "labels": [],
+      "size": 160,
+      "files": 2,
+      "internal": true,
+      "status": "live",
+      "version": "release v4.18.0",
+      "body": ""
+    },
+    {
+      "number": 1205,
+      "title": "fix(reminders): send in the clinic's time zone",
+      "author": "jorge-r",
+      "mergedAt": "2026-10-21T16:24:00Z",
+      "url": "https://github.com/larkwork/larkwork/pull/1205",
+      "labels": [],
+      "size": 95,
+      "files": 1,
+      "internal": false,
+      "status": "live",
+      "version": "release v4.18.0",
+      "body": ""
+    },
+    {
+      "number": 1206,
+      "title": "feat(swaps): managers approve swaps from the notification",
+      "author": "mira-k",
+      "mergedAt": "2026-10-21T18:00:00Z",
+      "url": "https://github.com/larkwork/larkwork/pull/1206",
+      "labels": [],
+      "size": 410,
+      "files": 6,
+      "internal": false,
+      "status": "live",
+      "version": "release v4.18.0",
+      "body": ""
+    },
+    {
+      "number": 1207,
+      "title": "fix(exports): keep the table's sort order",
+      "author": "tomasz-dev",
+      "mergedAt": "2026-10-21T20:12:00Z",
+      "url": "https://github.com/larkwork/larkwork/pull/1207",
+      "labels": [],
+      "size": 60,
+      "files": 1,
+      "internal": false,
+      "status": "live",
+      "version": "release v4.18.0",
+      "body": ""
+    },
+    {
+      "number": 1208,
+      "title": "refactor(api): split the rota service",
+      "author": "lin-yu",
+      "mergedAt": "2026-10-21T22:30:00Z",
+      "url": "https://github.com/larkwork/larkwork/pull/1208",
+      "labels": [],
+      "size": 1300,
+      "files": 21,
+      "internal": true,
+      "status": "live",
+      "version": "release v4.18.0",
+      "body": ""
+    },
+    {
+      "number": 1209,
+      "title": "feat(reports): hours by team against budget",
+      "author": "ade-o",
+      "mergedAt": "2026-10-22T00:48:00Z",
+      "url": "https://github.com/larkwork/larkwork/pull/1209",
+      "labels": [],
+      "size": 640,
+      "files": 10,
+      "internal": false,
+      "status": "live",
+      "version": "release v4.18.0",
+      "body": ""
+    },
+    {
+      "number": 1210,
+      "title": "release v4.18.0",
+      "author": "larkwork-release[bot]",
+      "mergedAt": "2026-10-22T02:00:00Z",
+      "url": "https://github.com/larkwork/larkwork/pull/1210",
+      "labels": [],
+      "size": 4,
+      "files": 1,
+      "internal": true,
+      "status": "live",
+      "version": "release v4.18.0",
+      "body": ""
+    },
+    {
+      "number": 1211,
+      "title": "fix(rota): name the empty shift in gap warnings",
+      "author": "jorge-r",
+      "mergedAt": "2026-10-22T05:18:00Z",
+      "url": "https://github.com/larkwork/larkwork/pull/1211",
+      "labels": [],
+      "size": 88,
+      "files": 1,
+      "internal": false,
+      "status": "next release",
+      "version": null,
+      "body": ""
+    },
+    {
+      "number": 1212,
+      "title": "docs: explain swap approval rules",
+      "author": "tomasz-dev",
+      "mergedAt": "2026-10-22T07:36:00Z",
+      "url": "https://github.com/larkwork/larkwork/pull/1212",
+      "labels": [],
+      "size": 30,
+      "files": 1,
+      "internal": true,
+      "status": "next release",
+      "version": null,
+      "body": ""
+    }
+  ]
+}

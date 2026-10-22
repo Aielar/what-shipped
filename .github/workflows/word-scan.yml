@@ -1,0 +1,25 @@
+name: Word scan
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    # Pull requests from forks get no secrets, so they skip; the push after merge scans.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # The list lives only in the BANNED_WORDS secret. No list means the job fails.
+      - run: node tools/scan-words.mjs
+        env:
+          BANNED_WORDS: ${{ secrets.BANNED_WORDS }}

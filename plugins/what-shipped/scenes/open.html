@@ -86,6 +86,8 @@
           const s = document.createElement("span");
           s.textContent = h.label;
           s.style.left = `${h.x * W}px`;
+          // Labels at the very ends align inward instead of hanging past the rail.
+          if (h.x < 0.04) s.style.transform = "none"; else if (h.x > 0.96) s.style.transform = "translateX(-100%)";
           q.one(".hours").appendChild(s);
         });
 

@@ -32,9 +32,10 @@ screenshot can't show.
 Scripts, scenes and the design live in `${CLAUDE_PLUGIN_ROOT}`. Each step's details are in
 `${CLAUDE_SKILL_DIR}/references/`; read the one for a step before doing it.
 
-1. **Scaffold.** `node "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold.mjs" [--repo owner/name]` creates
-   `what-shipped/<today>/` in the current folder. The first run writes `what-shipped/config.json`
-   from GitHub; check `release`, `capture` and `brand` against `config.md` with the user once.
+1. **Scaffold.** `node "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold.mjs"` creates `what-shipped/<today>/`
+   in the current folder; add `--repo owner/name` when the user names a repo or the folder isn't
+   a clone. The first run writes `what-shipped/config.json` from GitHub; go through `release`,
+   `capture` and `brand` with the user once, using `config.md`.
 2. **PRs.** In the video folder, `node prs.mjs`. It writes `prs.json`: every PR merged in the
    window, flagged internal or not, with its live status.
 3. **Digest.** Hand `digest-brief.md` to one subagent with the folder path so it writes
@@ -42,14 +43,15 @@ Scripts, scenes and the design live in `${CLAUDE_PLUGIN_ROOT}`. Each step's deta
 4. **Script.** Write `lines.json` (`script-and-scenes.md`), run `node voice.mjs`, and read
    `words.json`: anchors must quote what the voice actually said.
 5. **Capture.** `node capture.mjs captures.json` (`capture.md`). Read every PNG and place the
-   focus boxes. `MOVED`, `LOCKED` or `BLOCKED` means that theme becomes a rows scene.
+   focus boxes. On a public site, lock on the signed-out link so no account can be on screen.
+   `MOVED`, `LOCKED` or `BLOCKED` means that theme becomes a rows scene.
 6. **Build.** Write `scenes.json`, then `node assemble.mjs` and `npx hyperframes lint`.
 7. **Check.** `npx hyperframes snapshot . --at <the busiest second of each scene>`, look at every
    frame, fix, repeat. Then a draft render and frames at every scene boundary.
 8. **Final.** `npx hyperframes render --quality standard --output renders/raw.mp4`, then
    `ffmpeg -i renders/raw.mp4 -c:v copy -af loudnorm=I=-16:TP=-1.5:LRA=11 -ar 48000 -c:a aac -b:a 192k renders/what-shipped.mp4`.
-   Write `VERIFY.md` in under 30 lines: gates run, frames checked, each spoken claim with its
-   PR, what wasn't checked.
+   Write `VERIFY.md` in under 30 lines: a table of each spoken claim, its PR and how it was
+   checked, then what was left out and why, frames checked, and what wasn't checked.
 9. **Hand back** the MP4 path, the not-live list, and any theme that fell back from a real screen.
 
 ## Out of scope

@@ -1,0 +1,61 @@
+[
+  {
+    "id": "kb",
+    "page": "kb",
+    "hide": [
+      "text=We use cookies"
+    ]
+  },
+  {
+    "id": "server-sdk",
+    "page": "server-sdk",
+    "hide": [
+      "text=We use cookies"
+    ],
+    "settle": 4000
+  },
+  {
+    "id": "mcp-post",
+    "page": "mcp-post",
+    "hide": [
+      "text=We use cookies"
+    ]
+  },
+  {
+    "id": "kb-callout",
+    "page": "kb-callout",
+    "hide": [
+      "text=We use cookies"
+    ]
+  },
+  {
+    "id": "kb-faqs",
+    "url": "/kb/topics/faqs",
+    "steps": [
+      {
+        "scroll": 560
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "hide": [
+      "text=We use cookies"
+    ]
+  },
+  {
+    "id": "server-sdk-body",
+    "url": "/features/server-sdk",
+    "steps": [
+      {
+        "scroll": 380
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "hide": [
+      "text=We use cookies"
+    ]
+  }
+]

@@ -44,15 +44,19 @@ function scan(label, text) {
 }
 const git = (...args) => execFileSync('git', ['-C', root, ...args], { maxBuffer: 1 << 30 }).toString('latin1');
 
-// Every file that would ship: tracked plus untracked-but-not-ignored. Binaries are read
-// as bytes, so a name hidden in image or video metadata still counts.
+// Every file that would ship: tracked plus untracked-but-not-ignored. In a binary file
+// (images, video) the readable runs of 8 or more characters are scanned: metadata, paths
+// and embedded text show up there, while four random bytes of compressed pixels that
+// happen to spell a word do not.
 const files = git('ls-files', '-z', '--cached', '--others', '--exclude-standard').split('\0').filter(Boolean);
 let scanned = 0;
 for (const f of new Set(files)) {
   scan(`path ${f}`, f);
   const p = join(root, f);
   if (!existsSync(p) || !statSync(p).isFile()) continue;
-  scan(f, readFileSync(p).toString('latin1'));
+  const buf = readFileSync(p);
+  const binary = buf.subarray(0, 8192).includes(0);
+  scan(f, binary ? (buf.toString('latin1').match(/[\x20-\x7e]{8,}/g) || []).join('\n') : buf.toString('latin1'));
   scanned++;
 }
 

@@ -1,0 +1,33 @@
+{
+  "repo": "larkwork/larkwork",
+  "branch": "main",
+  "windowHours": 24,
+  "release": {
+    "mode": "commit",
+    "match": "^release v\\d+\\.\\d+\\.\\d+$",
+    "author": "larkwork-release[bot]"
+  },
+  "capture": {
+    "baseUrl": "https://app.larkwork.example",
+    "lock": { "selector": "[data-workspace-switcher]", "text": "Larkwork Demo Clinic" },
+    "blocked": ["/rota/[^/]+/publish", "/billing"],
+    "profile": "~/.what-shipped/larkwork-profile",
+    "pages": [
+      { "id": "rota", "url": "/rota", "waitFor": "This week" },
+      { "id": "swaps", "url": "/swaps", "waitFor": "Open swaps" },
+      { "id": "hours", "url": "/reports/hours", "waitFor": "Hours by team" }
+    ]
+  },
+  "brand": {
+    "name": "Larkwork",
+    "logo": null,
+    "colors": { "accent": "#C2410C" },
+    "fonts": { "display": "Newsreader", "mono": "JetBrains Mono" }
+  },
+  "voice": {
+    "voice": "af_heart",
+    "speed": 1.0,
+    "pronounce": { "Larkwork": "Lark work", "rota": "roe ta" }
+  },
+  "outro": "Questions? Ask in #product-updates."
+}

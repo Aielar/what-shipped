@@ -1,0 +1,3 @@
+[
+  { "id": "hours", "page": "hours", "mask": ["[data-employee-name]"], "hide": ["text=Chat with us"] }
+]
